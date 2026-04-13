@@ -735,8 +735,18 @@ static void riscv_aplic_write(void *opaque, hwaddr addr, uint64_t value,
     }
 
     if (addr == APLIC_DOMAINCFG) {
-        /* Only IE bit writable at the moment */
-        value &= APLIC_DOMAINCFG_IE;
+        /*
+         * IE is always writable. DM is writable only in MSI-mode domains
+         * (APLIC AIA spec §4.5.1: DM is read-only 0 in direct-delivery
+         * domains, writable in MSI-delivery domains).
+         * Linux probes MSI support by writing IE|DM and reading back; if
+         * the DM bit is silently dropped the driver falls back to wire mode.
+         */
+        uint32_t writable = APLIC_DOMAINCFG_IE;
+        if (aplic->msimode) {
+            writable |= APLIC_DOMAINCFG_DM;
+        }
+        value &= writable;
         aplic->domaincfg = value;
     } else if ((APLIC_SOURCECFG_BASE <= addr) &&
             (addr < (APLIC_SOURCECFG_BASE + (aplic->num_irqs - 1) * 4))) {
