@@ -4,6 +4,7 @@
   "acpu": {
     "num_clusters": 1,
     "cores_per_cluster": 2,
+    "hartid_base": 0,
     "isa": "rv64imafdc",
     "mmu_mode": "sv39",
     "pma_type": "none",
