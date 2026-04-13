@@ -26,6 +26,16 @@
  *  - M mode HLV/HLVX/HSV 0b111
  */
 
-#define TCG_GUEST_DEFAULT_MO 0
+/*
+ * RISC-V base memory model is RVWMO (weak ordering).
+ * Set TCG_MO_ALL so that tcg_gen_req_mo() actually inserts barriers
+ * when Ztso is disabled.  When Ztso is enabled, the translator adds
+ * acquire/release barriers directly (via tcg_gen_mb in trans_rvi.c.inc),
+ * so these req_mo barriers become redundant but harmless.
+ *
+ * Previously this was 0 (SC assumption), which made RVWMO barriers
+ * no-ops and hid missing-fence bugs on x86 hosts.
+ */
+#define TCG_GUEST_DEFAULT_MO TCG_MO_ALL
 
 #endif
