@@ -56,8 +56,8 @@ static uint64_t beta_generic_mmio_read(void *opaque, hwaddr addr,
     uint64_t val;
 
     if (idx < 0) {
-        qemu_log_mask(LOG_UNIMP,
-                      "%s: unimplemented read at offset 0x%" HWADDR_PRIx "\n",
+        qemu_log_mask(LOG_GUEST_ERROR,
+                      "%s: read at unknown offset 0x%" HWADDR_PRIx "\n",
                       s->device_name ? s->device_name : "beta-mmio", addr);
         return 0;
     }
@@ -92,8 +92,8 @@ static void beta_generic_mmio_write(void *opaque, hwaddr addr,
     int idx = find_reg_by_offset(s, addr);
 
     if (idx < 0) {
-        qemu_log_mask(LOG_UNIMP,
-                      "%s: unimplemented write at offset 0x%" HWADDR_PRIx
+        qemu_log_mask(LOG_GUEST_ERROR,
+                      "%s: write at unknown offset 0x%" HWADDR_PRIx
                       " value 0x%" PRIx64 "\n",
                       s->device_name ? s->device_name : "beta-mmio",
                       addr, val);
