@@ -39,7 +39,9 @@ static bool trans_sfence_w_inval(DisasContext *ctx, arg_sfence_w_inval *a)
 {
     REQUIRE_SVINVAL(ctx);
     REQUIRE_EXT(ctx, RVS);
-    /* Do nothing currently */
+    /* Store barrier: ensure all previous stores are visible before
+     * subsequent TLB invalidations (SINVAL.VMA etc.). */
+    tcg_gen_mb(TCG_MO_ST_ST | TCG_BAR_STRL);
     return true;
 }
 
@@ -47,7 +49,9 @@ static bool trans_sfence_inval_ir(DisasContext *ctx, arg_sfence_inval_ir *a)
 {
     REQUIRE_SVINVAL(ctx);
     REQUIRE_EXT(ctx, RVS);
-    /* Do nothing currently */
+    /* Full barrier: ensure all previous invalidations complete before
+     * subsequent instruction fetches and data accesses. */
+    tcg_gen_mb(TCG_MO_ALL | TCG_BAR_SC);
     return true;
 }
 
