@@ -19,6 +19,7 @@
  */
 
 #include "qemu/osdep.h"
+#include "qemu/log.h"
 #include "cpu.h"
 #include "internals.h"
 #include "exec/exec-all.h"
@@ -249,20 +250,59 @@ static void check_zicbom_access(CPURISCVState *env,
 
 void helper_cbo_clean_flush(CPURISCVState *env, target_ulong address)
 {
+    RISCVCPU *cpu = env_archcpu(env);
+    uint16_t cbomlen = cpu->cfg.cbom_blocksize;
     uintptr_t ra = GETPC();
+
     check_zicbo_envcfg(env, MENVCFG_CBCFE, ra);
     check_zicbom_access(env, address, ra);
 
-    /* We don't emulate the cache-hierarchy, so we're done. */
+    /*
+     * Cache clean/flush: ensure all stores from this hart to the target
+     * cache block are visible to other harts and DMA-capable devices.
+     *
+     * In QEMU, stores already go directly to shared RAM, so the data
+     * is always "written back". However, we insert a full memory barrier
+     * so that in MTTCG + RVWMO mode (ztso=false), cbo.flush acts as
+     * a proper ordering point — stores before this instruction are
+     * guaranteed visible to other threads after this barrier.
+     *
+     * This also flushes the current hart's TLB entry for the block
+     * to ensure no stale softmmu TLB data remains.
+     */
+    smp_mb();
+
+    address &= ~(cbomlen - 1);
+    tlb_flush_page(env_cpu(env), address);
+
+    qemu_log_mask(LOG_GUEST_ERROR & 0, /* silent unless debug */
+                  "cbo.clean/flush: hart %d addr 0x" TARGET_FMT_lx
+                  " (block 0x" TARGET_FMT_lx ")\n",
+                  env->mhartid, address, (target_ulong)cbomlen);
 }
 
 void helper_cbo_inval(CPURISCVState *env, target_ulong address)
 {
+    RISCVCPU *cpu = env_archcpu(env);
+    uint16_t cbomlen = cpu->cfg.cbom_blocksize;
     uintptr_t ra = GETPC();
+
     check_zicbo_envcfg(env, MENVCFG_CBIE, ra);
     check_zicbom_access(env, address, ra);
 
-    /* We don't emulate the cache-hierarchy, so we're done. */
+    /*
+     * Cache invalidate: discard any cached copies of the target block.
+     *
+     * In QEMU without a cache model, we insert a memory barrier and
+     * flush this hart's softmmu TLB entry for the block. This ensures
+     * the next access to this address will re-fetch from shared RAM,
+     * providing correct behavior in MTTCG mode when another hart or
+     * DMA device may have modified the data.
+     */
+    smp_mb();
+
+    address &= ~(cbomlen - 1);
+    tlb_flush_page(env_cpu(env), address);
 }
 
 #ifndef CONFIG_USER_ONLY
