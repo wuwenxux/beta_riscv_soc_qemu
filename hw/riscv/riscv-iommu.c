@@ -2636,8 +2636,15 @@ void riscv_iommu_pci_setup_iommu(RISCVIOMMUState *iommu, PCIBus *bus,
     } else if (!bus->iommu_ops && !bus->iommu_opaque) {
         pci_setup_iommu(bus, &riscv_iommu_ops, iommu);
     } else {
-        error_setg(errp, "can't register secondary IOMMU for PCI bus #%d",
-            pci_bus_num(bus));
+        /*
+         * The bus already has non-RISC-V IOMMU ops (e.g. DesignWare's
+         * passthrough designware_iommu_ops).  Override them with the
+         * RISC-V IOMMU so that DMA from PCIe devices is translated by
+         * the hardware IOMMU model rather than bypassed.  This is the
+         * correct behaviour when a platform IOMMU is wired after the
+         * PCIe host has already registered its default address-space ops.
+         */
+        pci_setup_iommu(bus, &riscv_iommu_ops, iommu);
     }
 }
 
