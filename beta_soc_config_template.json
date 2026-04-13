@@ -6,6 +6,7 @@
     "_comment": "Application CPU subsystem: 32 RV64GC cores in 8 clusters of 4 cores each, RVA23S64 profile",
     "num_clusters": 8,
     "cores_per_cluster": 4,
+    "hartid_base": 0,
     "total_cores": 32,
     "isa_string": "rv64imafdch_zicsr_zifencei_zicntr_zihpm_zihintpause_zicbom_zicbop_zicboz_zicond_zimop_zcmop_za64rs_zawrs_zfa_zfhmin_zba_zbb_zbc_zbs_zkt_zvfhmin_zvbb_zvkt_sscofpmf_sstc_sstvala_sscounterenw_svnapot_svpbmt_svinval_svade_svbare_sha",
     "_comment_isa": "Full RVA23S64 mandatory+optional extensions. Adjust as needed for the actual core implementation.",
