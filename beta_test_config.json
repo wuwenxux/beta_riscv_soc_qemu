@@ -1,0 +1,185 @@
+{
+  "_comment": "Beta SoC minimal test config \u2014 development/verification only",
+  "version": "1.0",
+  "acpu": {
+    "num_clusters": 2,
+    "cores_per_cluster": 4,
+    "isa": "rv64imafdc",
+    "mmu_mode": "sv39",
+    "pma_type": "none",
+    "reset_vector": "0x80000000"
+  },
+  "mcpu": {
+    "num_cores": 1,
+    "isa": "rv32imac",
+    "itcm_kb": 64,
+    "dtcm_kb": 64,
+    "sram_kb": 256,
+    "reset_vector": "0x00001000"
+  },
+  "memory_regions": [
+    {
+      "name": "bootrom",
+      "base": "0x00001000",
+      "size": "0x00003000",
+      "type": "rom",
+      "cpu_visible": "mcpu"
+    },
+    {
+      "name": "ddr",
+      "base": "0x80000000",
+      "size": "0x20000000",
+      "type": "ram",
+      "cpu_visible": "acpu"
+    }
+  ],
+  "interrupts": {
+    "aplic": {
+      "num_sources": 64,
+      "domains": [
+        {
+          "name": "m_root",
+          "level": "m",
+          "base": "0x0D000000",
+          "size": "0x00004000",
+          "parent": null
+        },
+        {
+          "name": "s_app",
+          "level": "s",
+          "base": "0x0D004000",
+          "size": "0x00004000",
+          "parent": "m_root"
+        }
+      ]
+    },
+    "imsic": {
+      "m_base": "0x24000000",
+      "s_base": "0x28000000",
+      "num_ids": 255,
+      "num_vs_files": 0,
+      "guest_index_bits": 0
+    },
+    "clint": {
+      "base": "0x02000000",
+      "size": "0x00010000",
+      "timebase_freq": 10000000
+    },
+    "plic": {
+      "base": "0x0",
+      "size": "0x00400000",
+      "num_sources": 0,
+      "num_priorities": 7
+    },
+    "irq_map": [
+      {
+        "name": "uart0",
+        "irq_num": 5,
+        "target": "aplic",
+        "domain": "s_app"
+      },
+      {
+        "name": "pcie0_msi",
+        "irq_num": 28,
+        "target": "aplic",
+        "domain": "s_app"
+      },
+      {
+        "name": "pcie0_intx",
+        "irq_num": 29,
+        "target": "aplic",
+        "domain": "s_app"
+      }
+    ]
+  },
+  "devices": [
+    {
+      "name": "uart0",
+      "type": "uart",
+      "base": "0x10000000",
+      "size": "0x00000100",
+      "cpu_target": "both",
+      "compatible": "ns16550a",
+      "irq_name": "uart0",
+      "clock_hz": 3686400,
+      "instance_id": 0
+    },
+    {
+      "name": "soc_csr",
+      "type": "soc_top_csr",
+      "base": "0x11000000",
+      "size": "0x00001000",
+      "cpu_target": "both",
+      "registers": [
+        {
+          "name": "BOOT_ADDR",
+          "offset": "0x00",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "BOOT_ARG",
+          "offset": "0x08",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "CORE_RELEASE",
+          "offset": "0x10",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "RESET_CTRL",
+          "offset": "0x18",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    }
+  ],
+  "ddr": {
+    "num_channels": 1,
+    "channel_width_bits": 64,
+    "speed_mbps": 3200,
+    "max_per_channel_gb": 1,
+    "interleave_step_bytes": 64,
+    "channels": [
+      {
+        "id": 0,
+        "ctrl_base": "0x20000000",
+        "mem_base": "0x80000000",
+        "size": "0x20000000"
+      }
+    ]
+  },
+  "pcie": [
+    {
+      "name": "pcie0",
+      "dbi_base": "0x30000000",
+      "dbi_size": "0x00001000",
+      "ecam_base": "0x40000000",
+      "ecam_size": "0x10000000",
+      "mmio_base": "0x50000000",
+      "mmio_size": "0x10000000",
+      "mmio64_base": "0x0",
+      "mmio64_size": "0x0",
+      "num_lanes": 16,
+      "irq_name": "pcie0_msi",
+      "irq_intx_name": "pcie0_intx"
+    }
+  ],
+  "boot": {
+    "mode": "mcpu_bootrom",
+    "bootrom_base": "0x00001000",
+    "bootrom_size": "0x00003000",
+    "flash_base": "0x00000000",
+    "flash_size": "0x00000000",
+    "mcpu_entry": "0x00001000",
+    "acpu_entry": "0x80000000"
+  }
+}
