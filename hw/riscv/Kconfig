@@ -9,6 +9,21 @@ config IBEX
 
 # RISC-V machines in alphabetical order
 
+config BETA_SOC
+    bool
+    default y
+    depends on RISCV32 || RISCV64
+    select DEVICE_TREE
+    select SERIAL_MM
+    select RISCV_ACLINT
+    select RISCV_APLIC
+    select RISCV_IMSIC
+    select SIFIVE_PLIC
+    select RISCV_IOMMU
+    select PFLASH_CFI01
+    select PCI_EXPRESS_DESIGNWARE
+    select UNIMP
+
 config MICROCHIP_PFSOC
     bool
     default y

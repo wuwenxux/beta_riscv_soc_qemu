@@ -1,0 +1,1361 @@
+{
+  "_comment": "Beta RISC-V SoC QEMU Platform Configuration Template. Replace all 0xDEAD#### placeholder addresses with real hardware values. Fields marked TODO require user input.",
+  "version": "1.0.0",
+
+  "acpu": {
+    "_comment": "Application CPU subsystem: 32 RV64GC cores in 8 clusters of 4 cores each, RVA23S64 profile",
+    "num_clusters": 8,
+    "cores_per_cluster": 4,
+    "total_cores": 32,
+    "isa_string": "rv64imafdch_zicsr_zifencei_zicntr_zihpm_zihintpause_zicbom_zicbop_zicboz_zicond_zimop_zcmop_za64rs_zawrs_zfa_zfhmin_zba_zbb_zbc_zbs_zkt_zvfhmin_zvbb_zvkt_sscofpmf_sstc_sstvala_sscounterenw_svnapot_svpbmt_svinval_svade_svbare_sha",
+    "_comment_isa": "Full RVA23S64 mandatory+optional extensions. Adjust as needed for the actual core implementation.",
+    "mmu": {
+      "type": "sv39",
+      "asid_bits": 16,
+      "vmid_bits": 14,
+      "_comment": "Sv39 provides 39-bit virtual address space (512GB). ASID/VMID widths are implementation-specific."
+    },
+    "pmu": {
+      "num_counters": 29,
+      "_comment": "Hardware performance counters (mhpmcounter3..mhpmcounter31). Set to actual core's HPM count."
+    },
+    "cache": {
+      "_comment": "Per-core cache parameters. Set to actual core implementation values.",
+      "l1i": {
+        "size_kb": 64,
+        "ways": 4,
+        "line_size": 64
+      },
+      "l1d": {
+        "size_kb": 64,
+        "ways": 4,
+        "line_size": 64
+      },
+      "l2_per_cluster": {
+        "size_kb": 512,
+        "ways": 8,
+        "line_size": 64,
+        "_comment": "Shared L2 cache per cluster (if present). Set to 0 if not applicable."
+      },
+      "l3_shared": {
+        "size_kb": 0,
+        "ways": 0,
+        "line_size": 64,
+        "_comment": "Shared L3 across all clusters (if present). Set to 0 if not applicable."
+      },
+      "cbom_block_size": 64,
+      "cboz_block_size": 64,
+      "_comment_cbo": "Cache block sizes for Zicbom (management) and Zicboz (zero) operations."
+    }
+  },
+
+  "mcpu": {
+    "_comment": "Management CPU: 1 RV32 IMAC core for boot and platform management",
+    "num_cores": 1,
+    "isa_string": "rv32imac_zicsr_zifencei",
+    "mmu": "none",
+    "itcm": {
+      "base": "0xDEAD0000",
+      "size": "0x8000",
+      "_comment": "32KB instruction tightly-coupled memory"
+    },
+    "dtcm": {
+      "base": "0xDEAD0100",
+      "size": "0x8000",
+      "_comment": "32KB data tightly-coupled memory"
+    },
+    "sram": {
+      "base": "0xDEAD0200",
+      "size": "0x80000",
+      "_comment": "512KB on-chip SRAM for MCPU use"
+    }
+  },
+
+  "memory_map": {
+    "_comment": "Full SoC memory map. All base addresses are placeholders (0xDEAD####). Replace with actual values from the SoC address map document.",
+    "regions": [
+      {
+        "name": "rom",
+        "base": "0xDEAD1000",
+        "size": "0x10000",
+        "type": "rom",
+        "_comment": "64KB Boot ROM"
+      },
+      {
+        "name": "mcpu_itcm",
+        "base": "0xDEAD0000",
+        "size": "0x8000",
+        "type": "ram",
+        "_comment": "MCPU 32KB instruction TCM"
+      },
+      {
+        "name": "mcpu_dtcm",
+        "base": "0xDEAD0100",
+        "size": "0x8000",
+        "type": "ram",
+        "_comment": "MCPU 32KB data TCM"
+      },
+      {
+        "name": "mcpu_sram",
+        "base": "0xDEAD0200",
+        "size": "0x80000",
+        "type": "ram",
+        "_comment": "MCPU 512KB SRAM"
+      },
+      {
+        "name": "mcpu_plic",
+        "base": "0xDEAD1100",
+        "size": "0x400000",
+        "type": "mmio",
+        "_comment": "MCPU PLIC: 64 interrupt sources, M-mode context only"
+      },
+      {
+        "name": "clint",
+        "base": "0xDEAD1200",
+        "size": "0x10000",
+        "type": "mmio",
+        "_comment": "CLINT for ACPU timer and software interrupts (all 32 harts)"
+      },
+      {
+        "name": "aplic_m_root",
+        "base": "0xDEAD1300",
+        "size": "0x4000",
+        "type": "mmio",
+        "_comment": "APLIC M-mode root domain"
+      },
+      {
+        "name": "aplic_m_app",
+        "base": "0xDEAD1400",
+        "size": "0x4000",
+        "type": "mmio",
+        "_comment": "APLIC M-mode application domain (child of M-root)"
+      },
+      {
+        "name": "aplic_s_app",
+        "base": "0xDEAD1500",
+        "size": "0x4000",
+        "type": "mmio",
+        "_comment": "APLIC S-mode application domain (child of M-root)"
+      },
+      {
+        "name": "imsic_m",
+        "base": "0xDEAD1600",
+        "size": "0x100000",
+        "type": "mmio",
+        "_comment": "IMSIC M-mode interrupt files for all 32 ACPU harts"
+      },
+      {
+        "name": "imsic_s",
+        "base": "0xDEAD1700",
+        "size": "0x100000",
+        "type": "mmio",
+        "_comment": "IMSIC S-mode interrupt files for all 32 ACPU harts (includes VS guest files)"
+      },
+      {
+        "name": "soc_csr",
+        "base": "0xDEAD1800",
+        "size": "0x10000",
+        "type": "mmio",
+        "_comment": "SoC top-level control/status registers"
+      },
+      {
+        "name": "sam",
+        "base": "0xDEAD1900",
+        "size": "0x10000",
+        "type": "mmio",
+        "_comment": "SAM (Secure Access Manager) PMA registers (non-standard)"
+      },
+      {
+        "name": "uart0",
+        "base": "0xDEAD2000",
+        "size": "0x1000",
+        "type": "mmio",
+        "_comment": "UART controller (16550-compatible assumed)"
+      },
+      {
+        "name": "i2c0",
+        "base": "0xDEAD2100",
+        "size": "0x1000",
+        "type": "mmio",
+        "_comment": "I2C controller 0"
+      },
+      {
+        "name": "i2c1",
+        "base": "0xDEAD2200",
+        "size": "0x1000",
+        "type": "mmio",
+        "_comment": "I2C controller 1"
+      },
+      {
+        "name": "i2c2",
+        "base": "0xDEAD2300",
+        "size": "0x1000",
+        "type": "mmio",
+        "_comment": "I2C controller 2"
+      },
+      {
+        "name": "i2c3",
+        "base": "0xDEAD2400",
+        "size": "0x1000",
+        "type": "mmio",
+        "_comment": "I2C controller 3"
+      },
+      {
+        "name": "i2c4",
+        "base": "0xDEAD2500",
+        "size": "0x1000",
+        "type": "mmio",
+        "_comment": "I2C controller 4"
+      },
+      {
+        "name": "i2c5",
+        "base": "0xDEAD2600",
+        "size": "0x1000",
+        "type": "mmio",
+        "_comment": "I2C controller 5"
+      },
+      {
+        "name": "gp_spi",
+        "base": "0xDEAD2700",
+        "size": "0x1000",
+        "type": "mmio",
+        "_comment": "General-purpose SPI controller"
+      },
+      {
+        "name": "bt_spi",
+        "base": "0xDEAD2800",
+        "size": "0x1000",
+        "type": "mmio",
+        "_comment": "Boot SPI controller (connected to 128MB NOR flash)"
+      },
+      {
+        "name": "bt_spi_flash",
+        "base": "0xDEAD2900",
+        "size": "0x8000000",
+        "type": "rom",
+        "_comment": "128MB NOR flash memory-mapped region via Boot SPI (XIP capable)"
+      },
+      {
+        "name": "wdt",
+        "base": "0xDEAD3000",
+        "size": "0x1000",
+        "type": "mmio",
+        "_comment": "Watchdog timer"
+      },
+      {
+        "name": "trng",
+        "base": "0xDEAD3100",
+        "size": "0x1000",
+        "type": "mmio",
+        "_comment": "True random number generator"
+      },
+      {
+        "name": "mailbox",
+        "base": "0xDEAD3200",
+        "size": "0x1000",
+        "type": "mmio",
+        "_comment": "Mailbox / semaphore controller for inter-processor communication"
+      },
+      {
+        "name": "pvt_sensor",
+        "base": "0xDEAD3300",
+        "size": "0x1000",
+        "type": "mmio",
+        "_comment": "PVT (Process/Voltage/Temperature) sensor"
+      },
+      {
+        "name": "usb0",
+        "base": "0xDEAD4000",
+        "size": "0x10000",
+        "type": "mmio",
+        "_comment": "USB 2.0 host controller 0"
+      },
+      {
+        "name": "usb1",
+        "base": "0xDEAD4100",
+        "size": "0x10000",
+        "type": "mmio",
+        "_comment": "USB 2.0 host controller 1"
+      },
+      {
+        "name": "pcie0_ecam",
+        "base": "0xDEAD5000",
+        "size": "0x10000000",
+        "type": "mmio",
+        "_comment": "PCIe 4.0 controller 0 ECAM (configuration space)"
+      },
+      {
+        "name": "pcie0_mmio",
+        "base": "0xDEAD5100",
+        "size": "0x40000000",
+        "type": "mmio",
+        "_comment": "PCIe 4.0 controller 0 MMIO window (32-bit)"
+      },
+      {
+        "name": "pcie0_mmio64",
+        "base": "0xDEAD5200",
+        "size": "0x100000000",
+        "type": "mmio",
+        "_comment": "PCIe 4.0 controller 0 MMIO window (64-bit prefetchable)"
+      },
+      {
+        "name": "pcie1_ecam",
+        "base": "0xDEAD5300",
+        "size": "0x10000000",
+        "type": "mmio",
+        "_comment": "PCIe 4.0 controller 1 ECAM"
+      },
+      {
+        "name": "pcie1_mmio",
+        "base": "0xDEAD5400",
+        "size": "0x40000000",
+        "type": "mmio",
+        "_comment": "PCIe 4.0 controller 1 MMIO window (32-bit)"
+      },
+      {
+        "name": "pcie1_mmio64",
+        "base": "0xDEAD5500",
+        "size": "0x100000000",
+        "type": "mmio",
+        "_comment": "PCIe 4.0 controller 1 MMIO window (64-bit prefetchable)"
+      },
+      {
+        "name": "pcie2_ecam",
+        "base": "0xDEAD5600",
+        "size": "0x10000000",
+        "type": "mmio",
+        "_comment": "PCIe 4.0 controller 2 ECAM"
+      },
+      {
+        "name": "pcie2_mmio",
+        "base": "0xDEAD5700",
+        "size": "0x40000000",
+        "type": "mmio",
+        "_comment": "PCIe 4.0 controller 2 MMIO window (32-bit)"
+      },
+      {
+        "name": "pcie2_mmio64",
+        "base": "0xDEAD5800",
+        "size": "0x100000000",
+        "type": "mmio",
+        "_comment": "PCIe 4.0 controller 2 MMIO window (64-bit prefetchable)"
+      },
+      {
+        "name": "pcie3_ecam",
+        "base": "0xDEAD5900",
+        "size": "0x10000000",
+        "type": "mmio",
+        "_comment": "PCIe 4.0 controller 3 ECAM"
+      },
+      {
+        "name": "pcie3_mmio",
+        "base": "0xDEAD5A00",
+        "size": "0x40000000",
+        "type": "mmio",
+        "_comment": "PCIe 4.0 controller 3 MMIO window (32-bit)"
+      },
+      {
+        "name": "pcie3_mmio64",
+        "base": "0xDEAD5B00",
+        "size": "0x100000000",
+        "type": "mmio",
+        "_comment": "PCIe 4.0 controller 3 MMIO window (64-bit prefetchable)"
+      },
+      {
+        "name": "ddr_ch0",
+        "base": "0x0000000080000000",
+        "size": "0x1000000000",
+        "type": "ram",
+        "_comment": "DDR4 channel 0: up to 64GB. Adjust base/size per actual map."
+      },
+      {
+        "name": "ddr_ch1",
+        "base": "0x0000001080000000",
+        "size": "0x1000000000",
+        "type": "ram",
+        "_comment": "DDR4 channel 1: up to 64GB"
+      },
+      {
+        "name": "ddr_ch2",
+        "base": "0x0000002080000000",
+        "size": "0x1000000000",
+        "type": "ram",
+        "_comment": "DDR4 channel 2: up to 64GB"
+      },
+      {
+        "name": "ddr_ch3",
+        "base": "0x0000003080000000",
+        "size": "0x1000000000",
+        "type": "ram",
+        "_comment": "DDR4 channel 3: up to 64GB"
+      },
+      {
+        "name": "ddr_ch4",
+        "base": "0x0000004080000000",
+        "size": "0x1000000000",
+        "type": "ram",
+        "_comment": "DDR4 channel 4: up to 64GB"
+      },
+      {
+        "name": "ddr_ch5",
+        "base": "0x0000005080000000",
+        "size": "0x1000000000",
+        "type": "ram",
+        "_comment": "DDR4 channel 5: up to 64GB"
+      },
+      {
+        "name": "ddr_ch6",
+        "base": "0x0000006080000000",
+        "size": "0x1000000000",
+        "type": "ram",
+        "_comment": "DDR4 channel 6: up to 64GB"
+      },
+      {
+        "name": "ddr_ch7",
+        "base": "0x0000007080000000",
+        "size": "0x1000000000",
+        "type": "ram",
+        "_comment": "DDR4 channel 7: up to 64GB"
+      }
+    ]
+  },
+
+  "interrupts": {
+    "_comment": "Interrupt subsystem configuration for ACPU (AIA + CLINT) and MCPU (PLIC)",
+
+    "aia": {
+      "_comment": "Advanced Interrupt Architecture for the 32 ACPU harts",
+      "aplic": {
+        "num_wired_irqs": 136,
+        "_comment_irqs": "136 wired interrupt sources routed through APLIC (IRQ IDs 1..136, ID 0 is reserved)",
+        "domains": [
+          {
+            "name": "m_root",
+            "mode": "machine",
+            "parent": null,
+            "base": "0xDEAD1300",
+            "size": "0x4000",
+            "num_harts": 32,
+            "delivery_mode": "msi",
+            "_comment": "M-mode root domain. Parent of m_app and s_app. Delegates IRQs to children."
+          },
+          {
+            "name": "m_app",
+            "mode": "machine",
+            "parent": "m_root",
+            "base": "0xDEAD1400",
+            "size": "0x4000",
+            "num_harts": 32,
+            "delivery_mode": "msi",
+            "_comment": "M-mode application domain for firmware interrupt handling"
+          },
+          {
+            "name": "s_app",
+            "mode": "supervisor",
+            "parent": "m_root",
+            "base": "0xDEAD1500",
+            "size": "0x4000",
+            "num_harts": 32,
+            "delivery_mode": "msi",
+            "_comment": "S-mode application domain for OS/hypervisor interrupt handling"
+          }
+        ]
+      },
+      "imsic": {
+        "num_ids": 2048,
+        "_comment_ids": "2048 MSI identity IDs per interrupt file (11-bit eiid, IDs 1..2047)",
+        "num_guest_files": 5,
+        "_comment_guest": "GEILEN=5: 5 VS-mode guest interrupt files per hart for hypervisor use",
+        "vs_support": true,
+        "m_file": {
+          "base": "0xDEAD1600",
+          "stride_per_hart": "0x1000",
+          "_comment": "M-mode interrupt file array. One file per hart, stride between consecutive harts."
+        },
+        "s_file": {
+          "base": "0xDEAD1700",
+          "stride_per_hart": "0x1000",
+          "stride_per_guest": "0x1000",
+          "_comment": "S-mode + VS-mode interrupt file array. Each hart has 1 S-file + 5 VS guest files."
+        }
+      }
+    },
+
+    "clint": {
+      "_comment": "Core Local Interruptor for ACPU: provides mtime, mtimecmp, and MSIP for all 32 harts",
+      "base": "0xDEAD1200",
+      "size": "0x10000",
+      "num_harts": 32,
+      "timebase_frequency": 10000000,
+      "_comment_freq": "Timer frequency in Hz. 10 MHz is common; set to actual SoC timer clock."
+    },
+
+    "mcpu_plic": {
+      "_comment": "Platform-Level Interrupt Controller for the single MCPU hart",
+      "base": "0xDEAD1100",
+      "size": "0x400000",
+      "num_sources": 64,
+      "num_priorities": 7,
+      "num_contexts": 1,
+      "_comment_ctx": "Single M-mode context for the single MCPU hart"
+    },
+
+    "irq_map": {
+      "_comment": "Global interrupt source map. 135 interrupt lines (IDs 1..135 for APLIC, separate numbering for MCPU PLIC). Source field is TODO -- fill in from SoC interrupt assignment table.",
+      "entries": [
+        { "irq_id": 1, "source": "TODO", "_comment": "Global interrupt 1" },
+        { "irq_id": 2, "source": "TODO", "_comment": "Global interrupt 2" },
+        { "irq_id": 3, "source": "TODO", "_comment": "Global interrupt 3" },
+        { "irq_id": 4, "source": "TODO", "_comment": "Global interrupt 4" },
+        { "irq_id": 5, "source": "TODO", "_comment": "Global interrupt 5" },
+        { "irq_id": 6, "source": "TODO", "_comment": "Global interrupt 6" },
+        { "irq_id": 7, "source": "TODO", "_comment": "Global interrupt 7" },
+        { "irq_id": 8, "source": "TODO", "_comment": "Global interrupt 8" },
+        { "irq_id": 9, "source": "TODO", "_comment": "Global interrupt 9" },
+        { "irq_id": 10, "source": "TODO", "_comment": "Global interrupt 10" },
+        { "irq_id": 11, "source": "TODO", "_comment": "Global interrupt 11" },
+        { "irq_id": 12, "source": "TODO", "_comment": "Global interrupt 12" },
+        { "irq_id": 13, "source": "TODO", "_comment": "Global interrupt 13" },
+        { "irq_id": 14, "source": "TODO", "_comment": "Global interrupt 14" },
+        { "irq_id": 15, "source": "TODO", "_comment": "Global interrupt 15" },
+        { "irq_id": 16, "source": "TODO", "_comment": "Global interrupt 16" },
+        { "irq_id": 17, "source": "TODO", "_comment": "Global interrupt 17" },
+        { "irq_id": 18, "source": "TODO", "_comment": "Global interrupt 18" },
+        { "irq_id": 19, "source": "TODO", "_comment": "Global interrupt 19" },
+        { "irq_id": 20, "source": "TODO", "_comment": "Global interrupt 20" },
+        { "irq_id": 21, "source": "TODO", "_comment": "Global interrupt 21" },
+        { "irq_id": 22, "source": "TODO", "_comment": "Global interrupt 22" },
+        { "irq_id": 23, "source": "TODO", "_comment": "Global interrupt 23" },
+        { "irq_id": 24, "source": "TODO", "_comment": "Global interrupt 24" },
+        { "irq_id": 25, "source": "TODO", "_comment": "Global interrupt 25" },
+        { "irq_id": 26, "source": "TODO", "_comment": "Global interrupt 26" },
+        { "irq_id": 27, "source": "TODO", "_comment": "Global interrupt 27" },
+        { "irq_id": 28, "source": "TODO", "_comment": "Global interrupt 28" },
+        { "irq_id": 29, "source": "TODO", "_comment": "Global interrupt 29" },
+        { "irq_id": 30, "source": "TODO", "_comment": "Global interrupt 30" },
+        { "irq_id": 31, "source": "TODO", "_comment": "Global interrupt 31" },
+        { "irq_id": 32, "source": "TODO", "_comment": "Global interrupt 32" },
+        { "irq_id": 33, "source": "TODO", "_comment": "Global interrupt 33" },
+        { "irq_id": 34, "source": "TODO", "_comment": "Global interrupt 34" },
+        { "irq_id": 35, "source": "TODO", "_comment": "Global interrupt 35" },
+        { "irq_id": 36, "source": "TODO", "_comment": "Global interrupt 36" },
+        { "irq_id": 37, "source": "TODO", "_comment": "Global interrupt 37" },
+        { "irq_id": 38, "source": "TODO", "_comment": "Global interrupt 38" },
+        { "irq_id": 39, "source": "TODO", "_comment": "Global interrupt 39" },
+        { "irq_id": 40, "source": "TODO", "_comment": "Global interrupt 40" },
+        { "irq_id": 41, "source": "TODO", "_comment": "Global interrupt 41" },
+        { "irq_id": 42, "source": "TODO", "_comment": "Global interrupt 42" },
+        { "irq_id": 43, "source": "TODO", "_comment": "Global interrupt 43" },
+        { "irq_id": 44, "source": "TODO", "_comment": "Global interrupt 44" },
+        { "irq_id": 45, "source": "TODO", "_comment": "Global interrupt 45" },
+        { "irq_id": 46, "source": "TODO", "_comment": "Global interrupt 46" },
+        { "irq_id": 47, "source": "TODO", "_comment": "Global interrupt 47" },
+        { "irq_id": 48, "source": "TODO", "_comment": "Global interrupt 48" },
+        { "irq_id": 49, "source": "TODO", "_comment": "Global interrupt 49" },
+        { "irq_id": 50, "source": "TODO", "_comment": "Global interrupt 50" },
+        { "irq_id": 51, "source": "TODO", "_comment": "Global interrupt 51" },
+        { "irq_id": 52, "source": "TODO", "_comment": "Global interrupt 52" },
+        { "irq_id": 53, "source": "TODO", "_comment": "Global interrupt 53" },
+        { "irq_id": 54, "source": "TODO", "_comment": "Global interrupt 54" },
+        { "irq_id": 55, "source": "TODO", "_comment": "Global interrupt 55" },
+        { "irq_id": 56, "source": "TODO", "_comment": "Global interrupt 56" },
+        { "irq_id": 57, "source": "TODO", "_comment": "Global interrupt 57" },
+        { "irq_id": 58, "source": "TODO", "_comment": "Global interrupt 58" },
+        { "irq_id": 59, "source": "TODO", "_comment": "Global interrupt 59" },
+        { "irq_id": 60, "source": "TODO", "_comment": "Global interrupt 60" },
+        { "irq_id": 61, "source": "TODO", "_comment": "Global interrupt 61" },
+        { "irq_id": 62, "source": "TODO", "_comment": "Global interrupt 62" },
+        { "irq_id": 63, "source": "TODO", "_comment": "Global interrupt 63" },
+        { "irq_id": 64, "source": "TODO", "_comment": "Global interrupt 64" },
+        { "irq_id": 65, "source": "TODO", "_comment": "Global interrupt 65" },
+        { "irq_id": 66, "source": "TODO", "_comment": "Global interrupt 66" },
+        { "irq_id": 67, "source": "TODO", "_comment": "Global interrupt 67" },
+        { "irq_id": 68, "source": "TODO", "_comment": "Global interrupt 68" },
+        { "irq_id": 69, "source": "TODO", "_comment": "Global interrupt 69" },
+        { "irq_id": 70, "source": "TODO", "_comment": "Global interrupt 70" },
+        { "irq_id": 71, "source": "TODO", "_comment": "Global interrupt 71" },
+        { "irq_id": 72, "source": "TODO", "_comment": "Global interrupt 72" },
+        { "irq_id": 73, "source": "TODO", "_comment": "Global interrupt 73" },
+        { "irq_id": 74, "source": "TODO", "_comment": "Global interrupt 74" },
+        { "irq_id": 75, "source": "TODO", "_comment": "Global interrupt 75" },
+        { "irq_id": 76, "source": "TODO", "_comment": "Global interrupt 76" },
+        { "irq_id": 77, "source": "TODO", "_comment": "Global interrupt 77" },
+        { "irq_id": 78, "source": "TODO", "_comment": "Global interrupt 78" },
+        { "irq_id": 79, "source": "TODO", "_comment": "Global interrupt 79" },
+        { "irq_id": 80, "source": "TODO", "_comment": "Global interrupt 80" },
+        { "irq_id": 81, "source": "TODO", "_comment": "Global interrupt 81" },
+        { "irq_id": 82, "source": "TODO", "_comment": "Global interrupt 82" },
+        { "irq_id": 83, "source": "TODO", "_comment": "Global interrupt 83" },
+        { "irq_id": 84, "source": "TODO", "_comment": "Global interrupt 84" },
+        { "irq_id": 85, "source": "TODO", "_comment": "Global interrupt 85" },
+        { "irq_id": 86, "source": "TODO", "_comment": "Global interrupt 86" },
+        { "irq_id": 87, "source": "TODO", "_comment": "Global interrupt 87" },
+        { "irq_id": 88, "source": "TODO", "_comment": "Global interrupt 88" },
+        { "irq_id": 89, "source": "TODO", "_comment": "Global interrupt 89" },
+        { "irq_id": 90, "source": "TODO", "_comment": "Global interrupt 90" },
+        { "irq_id": 91, "source": "TODO", "_comment": "Global interrupt 91" },
+        { "irq_id": 92, "source": "TODO", "_comment": "Global interrupt 92" },
+        { "irq_id": 93, "source": "TODO", "_comment": "Global interrupt 93" },
+        { "irq_id": 94, "source": "TODO", "_comment": "Global interrupt 94" },
+        { "irq_id": 95, "source": "TODO", "_comment": "Global interrupt 95" },
+        { "irq_id": 96, "source": "TODO", "_comment": "Global interrupt 96" },
+        { "irq_id": 97, "source": "TODO", "_comment": "Global interrupt 97" },
+        { "irq_id": 98, "source": "TODO", "_comment": "Global interrupt 98" },
+        { "irq_id": 99, "source": "TODO", "_comment": "Global interrupt 99" },
+        { "irq_id": 100, "source": "TODO", "_comment": "Global interrupt 100" },
+        { "irq_id": 101, "source": "TODO", "_comment": "Global interrupt 101" },
+        { "irq_id": 102, "source": "TODO", "_comment": "Global interrupt 102" },
+        { "irq_id": 103, "source": "TODO", "_comment": "Global interrupt 103" },
+        { "irq_id": 104, "source": "TODO", "_comment": "Global interrupt 104" },
+        { "irq_id": 105, "source": "TODO", "_comment": "Global interrupt 105" },
+        { "irq_id": 106, "source": "TODO", "_comment": "Global interrupt 106" },
+        { "irq_id": 107, "source": "TODO", "_comment": "Global interrupt 107" },
+        { "irq_id": 108, "source": "TODO", "_comment": "Global interrupt 108" },
+        { "irq_id": 109, "source": "TODO", "_comment": "Global interrupt 109" },
+        { "irq_id": 110, "source": "TODO", "_comment": "Global interrupt 110" },
+        { "irq_id": 111, "source": "TODO", "_comment": "Global interrupt 111" },
+        { "irq_id": 112, "source": "TODO", "_comment": "Global interrupt 112" },
+        { "irq_id": 113, "source": "TODO", "_comment": "Global interrupt 113" },
+        { "irq_id": 114, "source": "TODO", "_comment": "Global interrupt 114" },
+        { "irq_id": 115, "source": "TODO", "_comment": "Global interrupt 115" },
+        { "irq_id": 116, "source": "TODO", "_comment": "Global interrupt 116" },
+        { "irq_id": 117, "source": "TODO", "_comment": "Global interrupt 117" },
+        { "irq_id": 118, "source": "TODO", "_comment": "Global interrupt 118" },
+        { "irq_id": 119, "source": "TODO", "_comment": "Global interrupt 119" },
+        { "irq_id": 120, "source": "TODO", "_comment": "Global interrupt 120" },
+        { "irq_id": 121, "source": "TODO", "_comment": "Global interrupt 121" },
+        { "irq_id": 122, "source": "TODO", "_comment": "Global interrupt 122" },
+        { "irq_id": 123, "source": "TODO", "_comment": "Global interrupt 123" },
+        { "irq_id": 124, "source": "TODO", "_comment": "Global interrupt 124" },
+        { "irq_id": 125, "source": "TODO", "_comment": "Global interrupt 125" },
+        { "irq_id": 126, "source": "TODO", "_comment": "Global interrupt 126" },
+        { "irq_id": 127, "source": "TODO", "_comment": "Global interrupt 127" },
+        { "irq_id": 128, "source": "TODO", "_comment": "Global interrupt 128" },
+        { "irq_id": 129, "source": "TODO", "_comment": "Global interrupt 129" },
+        { "irq_id": 130, "source": "TODO", "_comment": "Global interrupt 130" },
+        { "irq_id": 131, "source": "TODO", "_comment": "Global interrupt 131" },
+        { "irq_id": 132, "source": "TODO", "_comment": "Global interrupt 132" },
+        { "irq_id": 133, "source": "TODO", "_comment": "Global interrupt 133" },
+        { "irq_id": 134, "source": "TODO", "_comment": "Global interrupt 134" },
+        { "irq_id": 135, "source": "TODO", "_comment": "Global interrupt 135" }
+      ]
+    }
+  },
+
+  "devices": {
+    "_comment": "All SoC peripherals. Each entry includes type, base address, size, IRQ assignment, and for generic_mmio devices, a representative register map.",
+    "peripherals": [
+      {
+        "name": "uart0",
+        "type": "serial",
+        "compatible": "ns16550a",
+        "base": "0xDEAD2000",
+        "size": "0x1000",
+        "irq": "TODO",
+        "clock_frequency": 0,
+        "_comment": "UART. Set clock_frequency to the actual input clock (e.g., 25000000 for 25MHz). IRQ is the APLIC source ID.",
+        "registers": [
+          { "offset": "0x00", "name": "RBR_THR_DLL", "width": 8, "_comment": "Receive/Transmit buffer / Divisor Latch Low" },
+          { "offset": "0x01", "name": "IER_DLH", "width": 8, "_comment": "Interrupt Enable / Divisor Latch High" },
+          { "offset": "0x02", "name": "IIR_FCR", "width": 8, "_comment": "Interrupt Identification / FIFO Control" },
+          { "offset": "0x03", "name": "LCR", "width": 8, "_comment": "Line Control Register" },
+          { "offset": "0x04", "name": "MCR", "width": 8, "_comment": "Modem Control Register" },
+          { "offset": "0x05", "name": "LSR", "width": 8, "_comment": "Line Status Register" },
+          { "offset": "0x06", "name": "MSR", "width": 8, "_comment": "Modem Status Register" },
+          { "offset": "0x07", "name": "SCR", "width": 8, "_comment": "Scratch Register" }
+        ]
+      },
+      {
+        "name": "i2c0",
+        "type": "i2c",
+        "compatible": "TODO",
+        "base": "0xDEAD2100",
+        "size": "0x1000",
+        "irq": "TODO",
+        "_comment": "I2C controller 0. Set compatible string to actual IP (e.g., snps,designware-i2c)."
+      },
+      {
+        "name": "i2c1",
+        "type": "i2c",
+        "compatible": "TODO",
+        "base": "0xDEAD2200",
+        "size": "0x1000",
+        "irq": "TODO"
+      },
+      {
+        "name": "i2c2",
+        "type": "i2c",
+        "compatible": "TODO",
+        "base": "0xDEAD2300",
+        "size": "0x1000",
+        "irq": "TODO"
+      },
+      {
+        "name": "i2c3",
+        "type": "i2c",
+        "compatible": "TODO",
+        "base": "0xDEAD2400",
+        "size": "0x1000",
+        "irq": "TODO"
+      },
+      {
+        "name": "i2c4",
+        "type": "i2c",
+        "compatible": "TODO",
+        "base": "0xDEAD2500",
+        "size": "0x1000",
+        "irq": "TODO"
+      },
+      {
+        "name": "i2c5",
+        "type": "i2c",
+        "compatible": "TODO",
+        "base": "0xDEAD2600",
+        "size": "0x1000",
+        "irq": "TODO"
+      },
+      {
+        "name": "gp_spi",
+        "type": "spi",
+        "compatible": "TODO",
+        "base": "0xDEAD2700",
+        "size": "0x1000",
+        "irq": "TODO",
+        "_comment": "General-purpose SPI controller",
+        "registers": [
+          { "offset": "0x00", "name": "CTRLR0", "width": 32, "_comment": "Control register 0" },
+          { "offset": "0x04", "name": "CTRLR1", "width": 32, "_comment": "Control register 1" },
+          { "offset": "0x08", "name": "SSIENR", "width": 32, "_comment": "SSI enable" },
+          { "offset": "0x10", "name": "SER", "width": 32, "_comment": "Slave enable" },
+          { "offset": "0x14", "name": "BAUDR", "width": 32, "_comment": "Baud rate select" },
+          { "offset": "0x28", "name": "SR", "width": 32, "_comment": "Status register" },
+          { "offset": "0x2C", "name": "IMR", "width": 32, "_comment": "Interrupt mask" },
+          { "offset": "0x60", "name": "DR", "width": 32, "_comment": "Data register" }
+        ]
+      },
+      {
+        "name": "bt_spi",
+        "type": "spi",
+        "compatible": "TODO",
+        "base": "0xDEAD2800",
+        "size": "0x1000",
+        "irq": "TODO",
+        "_comment": "Boot SPI controller connected to 128MB NOR flash. Supports XIP (execute-in-place).",
+        "flash": {
+          "type": "nor",
+          "size": "0x8000000",
+          "xip_base": "0xDEAD2900",
+          "_comment": "128MB NOR flash. XIP base is the memory-mapped read window."
+        }
+      },
+      {
+        "name": "rom",
+        "type": "rom",
+        "base": "0xDEAD1000",
+        "size": "0x10000",
+        "_comment": "64KB on-chip Boot ROM containing initial boot code"
+      },
+      {
+        "name": "wdt",
+        "type": "watchdog",
+        "compatible": "TODO",
+        "base": "0xDEAD3000",
+        "size": "0x1000",
+        "irq": "TODO",
+        "_comment": "Watchdog timer. Set compatible string to actual IP (e.g., snps,dw-wdt).",
+        "registers": [
+          { "offset": "0x00", "name": "WDT_CR", "width": 32, "_comment": "Control register" },
+          { "offset": "0x04", "name": "WDT_TORR", "width": 32, "_comment": "Timeout range register" },
+          { "offset": "0x08", "name": "WDT_CCVR", "width": 32, "_comment": "Current counter value" },
+          { "offset": "0x0C", "name": "WDT_CRR", "width": 32, "_comment": "Counter restart (kick)" },
+          { "offset": "0x10", "name": "WDT_STAT", "width": 32, "_comment": "Interrupt status" },
+          { "offset": "0x14", "name": "WDT_EOI", "width": 32, "_comment": "Interrupt clear" }
+        ]
+      },
+      {
+        "name": "trng",
+        "type": "rng",
+        "compatible": "TODO",
+        "base": "0xDEAD3100",
+        "size": "0x1000",
+        "irq": "TODO",
+        "_comment": "True random number generator",
+        "registers": [
+          { "offset": "0x00", "name": "TRNG_CTRL", "width": 32, "_comment": "Control register" },
+          { "offset": "0x04", "name": "TRNG_STATUS", "width": 32, "_comment": "Status register" },
+          { "offset": "0x08", "name": "TRNG_DATA", "width": 32, "_comment": "Random data output" },
+          { "offset": "0x0C", "name": "TRNG_IE", "width": 32, "_comment": "Interrupt enable" }
+        ]
+      },
+      {
+        "name": "mailbox",
+        "type": "generic_mmio",
+        "compatible": "TODO",
+        "base": "0xDEAD3200",
+        "size": "0x1000",
+        "irq": "TODO",
+        "_comment": "Mailbox / hardware semaphore for MCPU-ACPU inter-processor communication",
+        "registers": [
+          { "offset": "0x00", "name": "MBOX_TX_DATA", "width": 32, "_comment": "Transmit data register" },
+          { "offset": "0x04", "name": "MBOX_TX_STATUS", "width": 32, "_comment": "Transmit status" },
+          { "offset": "0x08", "name": "MBOX_RX_DATA", "width": 32, "_comment": "Receive data register" },
+          { "offset": "0x0C", "name": "MBOX_RX_STATUS", "width": 32, "_comment": "Receive status" },
+          { "offset": "0x10", "name": "MBOX_IRQ_ENABLE", "width": 32, "_comment": "Interrupt enable" },
+          { "offset": "0x14", "name": "MBOX_IRQ_STATUS", "width": 32, "_comment": "Interrupt status / clear" },
+          { "offset": "0x80", "name": "SEM0", "width": 32, "_comment": "Hardware semaphore 0" },
+          { "offset": "0x84", "name": "SEM1", "width": 32, "_comment": "Hardware semaphore 1" },
+          { "offset": "0x88", "name": "SEM2", "width": 32, "_comment": "Hardware semaphore 2" },
+          { "offset": "0x8C", "name": "SEM3", "width": 32, "_comment": "Hardware semaphore 3" }
+        ]
+      },
+      {
+        "name": "pvt_sensor",
+        "type": "generic_mmio",
+        "compatible": "TODO",
+        "base": "0xDEAD3300",
+        "size": "0x1000",
+        "irq": "TODO",
+        "_comment": "PVT (Process/Voltage/Temperature) sensor for thermal and voltage monitoring",
+        "registers": [
+          { "offset": "0x00", "name": "PVT_CTRL", "width": 32, "_comment": "Control register (enable, select sensor type)" },
+          { "offset": "0x04", "name": "PVT_STATUS", "width": 32, "_comment": "Status register (data valid, busy)" },
+          { "offset": "0x08", "name": "PVT_TEMP_DATA", "width": 32, "_comment": "Temperature reading (raw ADC value)" },
+          { "offset": "0x0C", "name": "PVT_VOLT_DATA", "width": 32, "_comment": "Voltage reading (raw ADC value)" },
+          { "offset": "0x10", "name": "PVT_PROCESS_DATA", "width": 32, "_comment": "Process corner reading" },
+          { "offset": "0x14", "name": "PVT_THRESH_HI", "width": 32, "_comment": "High threshold for alarm" },
+          { "offset": "0x18", "name": "PVT_THRESH_LO", "width": 32, "_comment": "Low threshold for alarm" },
+          { "offset": "0x1C", "name": "PVT_IRQ_ENABLE", "width": 32, "_comment": "Interrupt enable for threshold crossing" }
+        ]
+      },
+      {
+        "name": "usb0",
+        "type": "usb",
+        "compatible": "TODO",
+        "base": "0xDEAD4000",
+        "size": "0x10000",
+        "irq": "TODO",
+        "usb_version": "2.0",
+        "_comment": "USB 2.0 host controller 0. Set compatible string (e.g., generic-ehci, snps,dwc2)."
+      },
+      {
+        "name": "usb1",
+        "type": "usb",
+        "compatible": "TODO",
+        "base": "0xDEAD4100",
+        "size": "0x10000",
+        "irq": "TODO",
+        "usb_version": "2.0",
+        "_comment": "USB 2.0 host controller 1"
+      },
+      {
+        "name": "pcie0",
+        "type": "pcie",
+        "compatible": "TODO",
+        "version": "4.0",
+        "lanes": 16,
+        "irq_inta": "TODO",
+        "irq_intb": "TODO",
+        "irq_intc": "TODO",
+        "irq_intd": "TODO",
+        "irq_msi": "TODO",
+        "_comment": "PCIe Gen4 x16 root complex 0. Set compatible (e.g., snps,dw-pcie).",
+        "ecam": {
+          "base": "0xDEAD5000",
+          "size": "0x10000000",
+          "bus_start": 0,
+          "bus_end": 255
+        },
+        "mmio32": {
+          "base": "0xDEAD5100",
+          "size": "0x40000000"
+        },
+        "mmio64": {
+          "base": "0xDEAD5200",
+          "size": "0x100000000"
+        },
+        "pio": {
+          "base": "0xDEAD5050",
+          "size": "0x10000",
+          "_comment": "PCI I/O port window (if applicable)"
+        }
+      },
+      {
+        "name": "pcie1",
+        "type": "pcie",
+        "compatible": "TODO",
+        "version": "4.0",
+        "lanes": 16,
+        "irq_inta": "TODO",
+        "irq_intb": "TODO",
+        "irq_intc": "TODO",
+        "irq_intd": "TODO",
+        "irq_msi": "TODO",
+        "_comment": "PCIe Gen4 x16 root complex 1",
+        "ecam": { "base": "0xDEAD5300", "size": "0x10000000", "bus_start": 0, "bus_end": 255 },
+        "mmio32": { "base": "0xDEAD5400", "size": "0x40000000" },
+        "mmio64": { "base": "0xDEAD5500", "size": "0x100000000" }
+      },
+      {
+        "name": "pcie2",
+        "type": "pcie",
+        "compatible": "TODO",
+        "version": "4.0",
+        "lanes": 16,
+        "irq_inta": "TODO",
+        "irq_intb": "TODO",
+        "irq_intc": "TODO",
+        "irq_intd": "TODO",
+        "irq_msi": "TODO",
+        "_comment": "PCIe Gen4 x16 root complex 2",
+        "ecam": { "base": "0xDEAD5600", "size": "0x10000000", "bus_start": 0, "bus_end": 255 },
+        "mmio32": { "base": "0xDEAD5700", "size": "0x40000000" },
+        "mmio64": { "base": "0xDEAD5800", "size": "0x100000000" }
+      },
+      {
+        "name": "pcie3",
+        "type": "pcie",
+        "compatible": "TODO",
+        "version": "4.0",
+        "lanes": 16,
+        "irq_inta": "TODO",
+        "irq_intb": "TODO",
+        "irq_intc": "TODO",
+        "irq_intd": "TODO",
+        "irq_msi": "TODO",
+        "_comment": "PCIe Gen4 x16 root complex 3",
+        "ecam": { "base": "0xDEAD5900", "size": "0x10000000", "bus_start": 0, "bus_end": 255 },
+        "mmio32": { "base": "0xDEAD5A00", "size": "0x40000000" },
+        "mmio64": { "base": "0xDEAD5B00", "size": "0x100000000" }
+      }
+    ]
+  },
+
+  "ddr": {
+    "_comment": "DDR4 memory subsystem: 8 channels, 64-bit each, max 64GB per channel (512GB total)",
+    "num_channels": 8,
+    "channel_width_bits": 64,
+    "max_per_channel": "0x1000000000",
+    "max_total": "0x8000000000",
+    "_comment_max": "max_per_channel = 64GB (0x10_0000_0000), max_total = 512GB (0x80_0000_0000)",
+    "interleave": {
+      "enabled": true,
+      "step_bytes": 4096,
+      "num_ways": 8,
+      "_comment": "4KB interleave step across all 8 channels. Configured via SoC CSR."
+    },
+    "channels": [
+      { "index": 0, "base": "0x0000000080000000", "size": "0x1000000000", "_comment": "Channel 0: default 64GB. Adjust to actual populated size." },
+      { "index": 1, "base": "0x0000001080000000", "size": "0x1000000000", "_comment": "Channel 1" },
+      { "index": 2, "base": "0x0000002080000000", "size": "0x1000000000", "_comment": "Channel 2" },
+      { "index": 3, "base": "0x0000003080000000", "size": "0x1000000000", "_comment": "Channel 3" },
+      { "index": 4, "base": "0x0000004080000000", "size": "0x1000000000", "_comment": "Channel 4" },
+      { "index": 5, "base": "0x0000005080000000", "size": "0x1000000000", "_comment": "Channel 5" },
+      { "index": 6, "base": "0x0000006080000000", "size": "0x1000000000", "_comment": "Channel 6" },
+      { "index": 7, "base": "0x0000007080000000", "size": "0x1000000000", "_comment": "Channel 7" }
+    ]
+  },
+
+  "boot": {
+    "_comment": "Boot subsystem: MCPU boots first from BootROM, then releases ACPU cores",
+    "mode": "mcpu_bootrom",
+    "mcpu_reset_vector": "0xDEAD1000",
+    "_comment_mcpu_reset": "MCPU starts execution at the BootROM base address on power-on reset",
+    "acpu_reset_vector": "0xDEAD0300",
+    "_comment_acpu_reset": "ACPU reset vector is programmed by MCPU firmware via soc_csr.boot_addr before core release",
+    "bootrom_file": "",
+    "_comment_bootrom": "Path to the BootROM binary image to load into the ROM region at startup",
+    "fw_load_addr": "0xDEAD0400",
+    "_comment_fw": "Address where MCPU loads the next-stage firmware (e.g., OpenSBI) from NOR flash into DDR",
+    "kernel_load_addr": "0xDEAD0500",
+    "_comment_kernel": "Address for the OS kernel image in DDR",
+    "fdt_load_addr": "0xDEAD0600",
+    "_comment_fdt": "Address for the flattened device tree blob in DDR",
+    "initrd_load_addr": "0xDEAD0700",
+    "_comment_initrd": "Address for the initial ramdisk in DDR (optional)"
+  },
+
+  "soc_csr": {
+    "_comment": "SoC top-level control/status registers. Base address from memory_map.soc_csr. These control chip-level functions including reset, clocks, boot, DDR interleave, and address remap.",
+    "base": "0xDEAD1800",
+    "size": "0x10000",
+    "registers": [
+      {
+        "name": "CHIP_ID",
+        "offset": "0x000",
+        "width": 32,
+        "access": "RO",
+        "_comment": "Chip identification / revision register",
+        "fields": [
+          { "name": "vendor_id", "bits": "31:16", "_comment": "Vendor identifier" },
+          { "name": "chip_id", "bits": "15:8", "_comment": "Chip model identifier" },
+          { "name": "revision", "bits": "7:0", "_comment": "Silicon revision" }
+        ]
+      },
+      {
+        "name": "CORE_RELEASE",
+        "offset": "0x004",
+        "width": 32,
+        "access": "RW",
+        "reset_value": "0x00000000",
+        "_comment": "ACPU core release control. Each bit releases the corresponding hart from reset. Written by MCPU firmware after initialization.",
+        "fields": [
+          { "name": "hart_release", "bits": "31:0", "_comment": "Bit[n]=1 releases ACPU hart n from reset (n=0..31)" }
+        ]
+      },
+      {
+        "name": "RESET_CTRL",
+        "offset": "0x008",
+        "width": 32,
+        "access": "RW",
+        "reset_value": "0xFFFFFFFF",
+        "_comment": "Peripheral and subsystem reset control",
+        "fields": [
+          { "name": "soft_reset", "bits": "0", "_comment": "Global soft reset (write 1 to trigger)" },
+          { "name": "wdt_reset_en", "bits": "1", "_comment": "Enable watchdog-triggered system reset" },
+          { "name": "pcie0_reset", "bits": "4", "_comment": "PCIe controller 0 reset" },
+          { "name": "pcie1_reset", "bits": "5", "_comment": "PCIe controller 1 reset" },
+          { "name": "pcie2_reset", "bits": "6", "_comment": "PCIe controller 2 reset" },
+          { "name": "pcie3_reset", "bits": "7", "_comment": "PCIe controller 3 reset" },
+          { "name": "usb0_reset", "bits": "8", "_comment": "USB controller 0 reset" },
+          { "name": "usb1_reset", "bits": "9", "_comment": "USB controller 1 reset" },
+          { "name": "ddr_reset", "bits": "16", "_comment": "DDR subsystem reset" },
+          { "name": "lsp_reset", "bits": "24", "_comment": "Low-speed peripheral subsystem reset" }
+        ]
+      },
+      {
+        "name": "BOOT_ADDR_LO",
+        "offset": "0x010",
+        "width": 32,
+        "access": "RW",
+        "reset_value": "0x00000000",
+        "_comment": "ACPU boot address [31:0]. MCPU programs this before releasing ACPU cores."
+      },
+      {
+        "name": "BOOT_ADDR_HI",
+        "offset": "0x014",
+        "width": 32,
+        "access": "RW",
+        "reset_value": "0x00000000",
+        "_comment": "ACPU boot address [63:32]."
+      },
+      {
+        "name": "CLK_CTRL",
+        "offset": "0x020",
+        "width": 32,
+        "access": "RW",
+        "_comment": "Clock gating and source selection",
+        "fields": [
+          { "name": "acpu_clk_en", "bits": "0", "_comment": "ACPU clock enable" },
+          { "name": "acpu_clk_src", "bits": "3:1", "_comment": "ACPU clock source select (PLL index)" },
+          { "name": "lsp_clk_en", "bits": "8", "_comment": "LSP peripheral clock enable" },
+          { "name": "lsp_clk_div", "bits": "15:12", "_comment": "LSP clock divider" },
+          { "name": "hsp_clk_en", "bits": "16", "_comment": "HSP (PCIe/USB) clock enable" },
+          { "name": "ddr_clk_en", "bits": "24", "_comment": "DDR clock enable" }
+        ]
+      },
+      {
+        "name": "PLL0_CTRL",
+        "offset": "0x040",
+        "width": 32,
+        "access": "RW",
+        "_comment": "PLL 0 configuration (ACPU main PLL)",
+        "fields": [
+          { "name": "pll_en", "bits": "0", "_comment": "PLL enable" },
+          { "name": "pll_bypass", "bits": "1", "_comment": "PLL bypass (use reference clock)" },
+          { "name": "pll_lock", "bits": "2", "_comment": "PLL lock status (RO)" },
+          { "name": "fbdiv", "bits": "19:8", "_comment": "Feedback divider value" },
+          { "name": "refdiv", "bits": "25:20", "_comment": "Reference divider value" },
+          { "name": "postdiv", "bits": "31:28", "_comment": "Post divider value" }
+        ]
+      },
+      {
+        "name": "PLL1_CTRL",
+        "offset": "0x044",
+        "width": 32,
+        "access": "RW",
+        "_comment": "PLL 1 configuration (DDR PLL)"
+      },
+      {
+        "name": "PLL2_CTRL",
+        "offset": "0x048",
+        "width": 32,
+        "access": "RW",
+        "_comment": "PLL 2 configuration (peripheral PLL)"
+      },
+      {
+        "name": "DDR_INTERLEAVE",
+        "offset": "0x080",
+        "width": 32,
+        "access": "RW",
+        "_comment": "DDR interleave configuration. Must be set before DDR initialization.",
+        "fields": [
+          { "name": "enable", "bits": "0", "_comment": "Enable DDR interleaving" },
+          { "name": "num_ways", "bits": "7:4", "_comment": "Number of interleave ways (1/2/4/8)" },
+          { "name": "step_log2", "bits": "15:8", "_comment": "Interleave step as log2(bytes). 12 = 4KB step" },
+          { "name": "channel_mask", "bits": "23:16", "_comment": "Bitmask of active channels for interleave" }
+        ]
+      },
+      {
+        "name": "ADDR_REMAP0",
+        "offset": "0x0A0",
+        "width": 32,
+        "access": "RW",
+        "_comment": "Address remap register 0: remap source region",
+        "fields": [
+          { "name": "enable", "bits": "0", "_comment": "Enable this remap entry" },
+          { "name": "src_base", "bits": "31:12", "_comment": "Source base address [31:12] (4KB aligned)" }
+        ]
+      },
+      {
+        "name": "ADDR_REMAP0_DST",
+        "offset": "0x0A4",
+        "width": 32,
+        "access": "RW",
+        "_comment": "Address remap register 0: remap destination base [31:12]"
+      },
+      {
+        "name": "ADDR_REMAP0_SIZE",
+        "offset": "0x0A8",
+        "width": 32,
+        "access": "RW",
+        "_comment": "Address remap register 0: region size as log2(bytes)"
+      },
+      {
+        "name": "PCIE_MODE",
+        "offset": "0x0C0",
+        "width": 32,
+        "access": "RW",
+        "_comment": "PCIe controller mode configuration (must be set before PCIe init)",
+        "fields": [
+          { "name": "pcie0_mode", "bits": "1:0", "_comment": "0=RC (root complex), 1=EP (endpoint), 2=disabled" },
+          { "name": "pcie1_mode", "bits": "3:2", "_comment": "0=RC, 1=EP, 2=disabled" },
+          { "name": "pcie2_mode", "bits": "5:4", "_comment": "0=RC, 1=EP, 2=disabled" },
+          { "name": "pcie3_mode", "bits": "7:6", "_comment": "0=RC, 1=EP, 2=disabled" },
+          { "name": "pcie0_speed", "bits": "9:8", "_comment": "0=Gen1, 1=Gen2, 2=Gen3, 3=Gen4" },
+          { "name": "pcie1_speed", "bits": "11:10", "_comment": "Max link speed for controller 1" },
+          { "name": "pcie2_speed", "bits": "13:12", "_comment": "Max link speed for controller 2" },
+          { "name": "pcie3_speed", "bits": "15:14", "_comment": "Max link speed for controller 3" }
+        ]
+      },
+      {
+        "name": "BOOT_STATUS",
+        "offset": "0x0E0",
+        "width": 32,
+        "access": "RW",
+        "_comment": "Boot status register for MCPU to communicate boot progress",
+        "fields": [
+          { "name": "boot_stage", "bits": "7:0", "_comment": "Current boot stage code" },
+          { "name": "boot_error", "bits": "15:8", "_comment": "Boot error code (0 = no error)" },
+          { "name": "ddr_init_done", "bits": "16", "_comment": "DDR initialization complete flag" },
+          { "name": "acpu_released", "bits": "17", "_comment": "ACPU cores have been released" }
+        ]
+      }
+    ]
+  },
+
+  "sam": {
+    "_comment": "SAM (Secure Access Manager) registers for PMA (Physical Memory Attributes). Non-standard RISC-V extension. Configures memory region access permissions and cacheability attributes per-hart or globally.",
+    "base": "0xDEAD1900",
+    "size": "0x10000",
+    "num_entries": 16,
+    "_comment_entries": "Number of SAM PMA entries. Each entry defines a region with base, size, and attributes.",
+    "entries": [
+      {
+        "index": 0,
+        "offset": "0x000",
+        "_comment": "SAM entry 0: typically covers BootROM as read-only, executable, non-cacheable",
+        "registers": [
+          { "name": "SAM_ENTRY0_BASE_LO", "offset": "0x000", "width": 32, "_comment": "Region base address [31:0]" },
+          { "name": "SAM_ENTRY0_BASE_HI", "offset": "0x004", "width": 32, "_comment": "Region base address [63:32]" },
+          { "name": "SAM_ENTRY0_SIZE", "offset": "0x008", "width": 32, "_comment": "Region size as log2(bytes)" },
+          {
+            "name": "SAM_ENTRY0_ATTR",
+            "offset": "0x00C",
+            "width": 32,
+            "_comment": "Region attributes",
+            "fields": [
+              { "name": "enable", "bits": "0", "_comment": "Entry enable" },
+              { "name": "read", "bits": "1", "_comment": "Read permission" },
+              { "name": "write", "bits": "2", "_comment": "Write permission" },
+              { "name": "execute", "bits": "3", "_comment": "Execute permission" },
+              { "name": "cacheable", "bits": "5:4", "_comment": "0=non-cacheable, 1=write-through, 2=write-back" },
+              { "name": "shareable", "bits": "6", "_comment": "Inner shareable attribute" },
+              { "name": "privilege", "bits": "9:8", "_comment": "0=all modes, 1=S+M only, 2=M only" },
+              { "name": "hart_mask_lo", "bits": "31:16", "_comment": "Hart applicability mask [15:0] (1=applies to this hart)" }
+            ]
+          }
+        ]
+      },
+      {
+        "index": 1,
+        "offset": "0x010",
+        "_comment": "SAM entry 1: structure identical to entry 0. Typically covers DDR as read-write, cacheable.",
+        "registers": [
+          { "name": "SAM_ENTRY1_BASE_LO", "offset": "0x010", "width": 32 },
+          { "name": "SAM_ENTRY1_BASE_HI", "offset": "0x014", "width": 32 },
+          { "name": "SAM_ENTRY1_SIZE", "offset": "0x018", "width": 32 },
+          { "name": "SAM_ENTRY1_ATTR", "offset": "0x01C", "width": 32 }
+        ]
+      },
+      {
+        "index": 2,
+        "offset": "0x020",
+        "_comment": "SAM entry 2: typically covers MMIO device region as non-cacheable, read-write",
+        "registers": [
+          { "name": "SAM_ENTRY2_BASE_LO", "offset": "0x020", "width": 32 },
+          { "name": "SAM_ENTRY2_BASE_HI", "offset": "0x024", "width": 32 },
+          { "name": "SAM_ENTRY2_SIZE", "offset": "0x028", "width": 32 },
+          { "name": "SAM_ENTRY2_ATTR", "offset": "0x02C", "width": 32 }
+        ]
+      },
+      {
+        "index": 3,
+        "offset": "0x030",
+        "_comment": "SAM entry 3",
+        "registers": [
+          { "name": "SAM_ENTRY3_BASE_LO", "offset": "0x030", "width": 32 },
+          { "name": "SAM_ENTRY3_BASE_HI", "offset": "0x034", "width": 32 },
+          { "name": "SAM_ENTRY3_SIZE", "offset": "0x038", "width": 32 },
+          { "name": "SAM_ENTRY3_ATTR", "offset": "0x03C", "width": 32 }
+        ]
+      },
+      {
+        "index": 4,
+        "offset": "0x040",
+        "_comment": "SAM entry 4",
+        "registers": [
+          { "name": "SAM_ENTRY4_BASE_LO", "offset": "0x040", "width": 32 },
+          { "name": "SAM_ENTRY4_BASE_HI", "offset": "0x044", "width": 32 },
+          { "name": "SAM_ENTRY4_SIZE", "offset": "0x048", "width": 32 },
+          { "name": "SAM_ENTRY4_ATTR", "offset": "0x04C", "width": 32 }
+        ]
+      },
+      {
+        "index": 5,
+        "offset": "0x050",
+        "_comment": "SAM entry 5",
+        "registers": [
+          { "name": "SAM_ENTRY5_BASE_LO", "offset": "0x050", "width": 32 },
+          { "name": "SAM_ENTRY5_BASE_HI", "offset": "0x054", "width": 32 },
+          { "name": "SAM_ENTRY5_SIZE", "offset": "0x058", "width": 32 },
+          { "name": "SAM_ENTRY5_ATTR", "offset": "0x05C", "width": 32 }
+        ]
+      },
+      {
+        "index": 6,
+        "offset": "0x060",
+        "_comment": "SAM entry 6",
+        "registers": [
+          { "name": "SAM_ENTRY6_BASE_LO", "offset": "0x060", "width": 32 },
+          { "name": "SAM_ENTRY6_BASE_HI", "offset": "0x064", "width": 32 },
+          { "name": "SAM_ENTRY6_SIZE", "offset": "0x068", "width": 32 },
+          { "name": "SAM_ENTRY6_ATTR", "offset": "0x06C", "width": 32 }
+        ]
+      },
+      {
+        "index": 7,
+        "offset": "0x070",
+        "_comment": "SAM entry 7",
+        "registers": [
+          { "name": "SAM_ENTRY7_BASE_LO", "offset": "0x070", "width": 32 },
+          { "name": "SAM_ENTRY7_BASE_HI", "offset": "0x074", "width": 32 },
+          { "name": "SAM_ENTRY7_SIZE", "offset": "0x078", "width": 32 },
+          { "name": "SAM_ENTRY7_ATTR", "offset": "0x07C", "width": 32 }
+        ]
+      },
+      {
+        "index": 8,
+        "offset": "0x080",
+        "_comment": "SAM entry 8",
+        "registers": [
+          { "name": "SAM_ENTRY8_BASE_LO", "offset": "0x080", "width": 32 },
+          { "name": "SAM_ENTRY8_BASE_HI", "offset": "0x084", "width": 32 },
+          { "name": "SAM_ENTRY8_SIZE", "offset": "0x088", "width": 32 },
+          { "name": "SAM_ENTRY8_ATTR", "offset": "0x08C", "width": 32 }
+        ]
+      },
+      {
+        "index": 9,
+        "offset": "0x090",
+        "_comment": "SAM entry 9",
+        "registers": [
+          { "name": "SAM_ENTRY9_BASE_LO", "offset": "0x090", "width": 32 },
+          { "name": "SAM_ENTRY9_BASE_HI", "offset": "0x094", "width": 32 },
+          { "name": "SAM_ENTRY9_SIZE", "offset": "0x098", "width": 32 },
+          { "name": "SAM_ENTRY9_ATTR", "offset": "0x09C", "width": 32 }
+        ]
+      },
+      {
+        "index": 10,
+        "offset": "0x0A0",
+        "_comment": "SAM entry 10",
+        "registers": [
+          { "name": "SAM_ENTRY10_BASE_LO", "offset": "0x0A0", "width": 32 },
+          { "name": "SAM_ENTRY10_BASE_HI", "offset": "0x0A4", "width": 32 },
+          { "name": "SAM_ENTRY10_SIZE", "offset": "0x0A8", "width": 32 },
+          { "name": "SAM_ENTRY10_ATTR", "offset": "0x0AC", "width": 32 }
+        ]
+      },
+      {
+        "index": 11,
+        "offset": "0x0B0",
+        "_comment": "SAM entry 11",
+        "registers": [
+          { "name": "SAM_ENTRY11_BASE_LO", "offset": "0x0B0", "width": 32 },
+          { "name": "SAM_ENTRY11_BASE_HI", "offset": "0x0B4", "width": 32 },
+          { "name": "SAM_ENTRY11_SIZE", "offset": "0x0B8", "width": 32 },
+          { "name": "SAM_ENTRY11_ATTR", "offset": "0x0BC", "width": 32 }
+        ]
+      },
+      {
+        "index": 12,
+        "offset": "0x0C0",
+        "_comment": "SAM entry 12",
+        "registers": [
+          { "name": "SAM_ENTRY12_BASE_LO", "offset": "0x0C0", "width": 32 },
+          { "name": "SAM_ENTRY12_BASE_HI", "offset": "0x0C4", "width": 32 },
+          { "name": "SAM_ENTRY12_SIZE", "offset": "0x0C8", "width": 32 },
+          { "name": "SAM_ENTRY12_ATTR", "offset": "0x0CC", "width": 32 }
+        ]
+      },
+      {
+        "index": 13,
+        "offset": "0x0D0",
+        "_comment": "SAM entry 13",
+        "registers": [
+          { "name": "SAM_ENTRY13_BASE_LO", "offset": "0x0D0", "width": 32 },
+          { "name": "SAM_ENTRY13_BASE_HI", "offset": "0x0D4", "width": 32 },
+          { "name": "SAM_ENTRY13_SIZE", "offset": "0x0D8", "width": 32 },
+          { "name": "SAM_ENTRY13_ATTR", "offset": "0x0DC", "width": 32 }
+        ]
+      },
+      {
+        "index": 14,
+        "offset": "0x0E0",
+        "_comment": "SAM entry 14",
+        "registers": [
+          { "name": "SAM_ENTRY14_BASE_LO", "offset": "0x0E0", "width": 32 },
+          { "name": "SAM_ENTRY14_BASE_HI", "offset": "0x0E4", "width": 32 },
+          { "name": "SAM_ENTRY14_SIZE", "offset": "0x0E8", "width": 32 },
+          { "name": "SAM_ENTRY14_ATTR", "offset": "0x0EC", "width": 32 }
+        ]
+      },
+      {
+        "index": 15,
+        "offset": "0x0F0",
+        "_comment": "SAM entry 15",
+        "registers": [
+          { "name": "SAM_ENTRY15_BASE_LO", "offset": "0x0F0", "width": 32 },
+          { "name": "SAM_ENTRY15_BASE_HI", "offset": "0x0F4", "width": 32 },
+          { "name": "SAM_ENTRY15_SIZE", "offset": "0x0F8", "width": 32 },
+          { "name": "SAM_ENTRY15_ATTR", "offset": "0x0FC", "width": 32 }
+        ]
+      }
+    ]
+  },
+
+  "qos": {
+    "_comment": "No QoS/CBQRI support on this SoC. This section is a placeholder.",
+    "supported": false
+  }
+}
