@@ -183,7 +183,17 @@ static void riscv_iommu_sys_realize(DeviceState *dev, Error **errp)
 
     pci_bus = (PCIBus *) object_resolve_path_type("", TYPE_PCI_BUS, NULL);
     if (pci_bus) {
-        riscv_iommu_pci_setup_iommu(&s->iommu, pci_bus, errp);
+        Error *local_err = NULL;
+        riscv_iommu_pci_setup_iommu(&s->iommu, pci_bus, &local_err);
+        if (local_err) {
+            /*
+             * Non-fatal: another IOMMU (e.g. DWC designware_iommu_ops) already
+             * owns this bus.  Explicit per-bus wiring via
+             * riscv_iommu_sys_setup_pci_bus() will override it after all
+             * devices are realized.
+             */
+            error_free(local_err);
+        }
     }
 
     s->iommu.notify = riscv_iommu_sysdev_notify;
@@ -253,3 +263,20 @@ static void riscv_iommu_register_sys(void)
 }
 
 type_init(riscv_iommu_register_sys)
+
+/*
+ * riscv_iommu_sys_setup_pci_bus - Wire a PCIe root bus to a RISC-V IOMMU
+ *                                  platform device.
+ *
+ * Installs @iommu_sys_dev as the IOMMU address-space provider for @bus so
+ * that PCIe device DMA passes through RISC-V IOMMU translation.  Call this
+ * after both the IOMMU device and the PCIe bus have been realized.  It is
+ * safe to call for multiple buses on the same IOMMU (e.g. 4x4 bifurcation)
+ * and safe to call again to override an earlier (possibly incorrect)
+ * auto-discovered binding set up inside riscv_iommu_sys_realize().
+ */
+void riscv_iommu_sys_setup_pci_bus(DeviceState *dev, PCIBus *bus, Error **errp)
+{
+    RISCVIOMMUStateSys *s = RISCV_IOMMU_SYS(dev);
+    riscv_iommu_pci_setup_iommu(&s->iommu, bus, errp);
+}

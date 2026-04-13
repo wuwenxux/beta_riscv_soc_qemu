@@ -41,4 +41,22 @@ typedef struct RISCVIOMMUSysClass RISCVIOMMUSysClass;
 
 #define FDT_IRQ_TYPE_EDGE_LOW 1
 
+#include "hw/pci/pci_bus.h"
+
+/**
+ * riscv_iommu_sys_setup_pci_bus - Wire a PCIe root bus to a RISC-V IOMMU
+ *                                  platform device.
+ *
+ * Call this after both the TYPE_RISCV_IOMMU_SYS device and the PCIe root bus
+ * have been realized.  It installs the RISC-V IOMMU as the address-space
+ * provider for @bus so that DMA initiated by PCIe devices passes through IOMMU
+ * translation instead of bypassing it.
+ *
+ * @iommu_sys_dev: A realized TYPE_RISCV_IOMMU_SYS DeviceState.
+ * @bus:           The PCIe root bus to attach this IOMMU to.
+ * @errp:          Standard QEMU error pointer.
+ */
+void riscv_iommu_sys_setup_pci_bus(DeviceState *iommu_sys_dev,
+                                   PCIBus *bus, Error **errp);
+
 #endif
