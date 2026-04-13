@@ -141,6 +141,12 @@ static bool riscv_hart_realize(RISCVHartArrayState *s, int idx,
     }
 
     s->harts[idx].env.mhartid = s->hartid_base + idx;
+
+    /* Allow the machine to configure per-hart properties before realize */
+    if (s->pre_realize_fn) {
+        s->pre_realize_fn(&s->harts[idx], idx, s->pre_realize_opaque);
+    }
+
     qemu_register_reset(riscv_harts_cpu_reset, &s->harts[idx]);
     return qdev_realize(DEVICE(&s->harts[idx]), NULL, errp);
 }

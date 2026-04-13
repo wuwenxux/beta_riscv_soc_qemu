@@ -29,6 +29,18 @@
 
 OBJECT_DECLARE_SIMPLE_TYPE(RISCVHartArrayState, RISCV_HART_ARRAY)
 
+/*
+ * Optional callback invoked for each hart after object_initialize_child()
+ * but before qdev_realize().  Use this to set per-hart CPU properties
+ * (e.g. smaia, vlen, misa extensions) that must be configured before
+ * the CPU's realize path runs.
+ *
+ * @cpu:    the hart being initialized
+ * @idx:    zero-based index within the hart array
+ * @opaque: caller-supplied context pointer (pre_realize_opaque)
+ */
+typedef void (*RISCVHartPreRealizeFn)(RISCVCPU *cpu, int idx, void *opaque);
+
 struct RISCVHartArrayState {
     /*< private >*/
     SysBusDevice parent_obj;
@@ -42,6 +54,9 @@ struct RISCVHartArrayState {
     uint64_t *rnmi_irqvec;
     uint32_t num_rnmi_excpvec;
     uint64_t *rnmi_excpvec;
+    /* Optional pre-realize hook; set before sysbus_realize() */
+    RISCVHartPreRealizeFn pre_realize_fn;
+    void *pre_realize_opaque;
     RISCVCPU *harts;
 };
 
