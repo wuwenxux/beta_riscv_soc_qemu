@@ -428,6 +428,11 @@ static void riscv_aclint_swi_write(void *opaque, hwaddr addr, uint64_t value,
 {
     RISCVAclintSwiState *swi = opaque;
 
+    if (!swi->sswi) {
+        qemu_log_mask(LOG_UNIMP,
+            "aclint_swi_write: addr=0x%"HWADDR_PRIx" hartid=%zu value=%"PRIu64"\n",
+            addr, swi->hartid_base + (addr >> 2), value);
+    }
     if (addr < (swi->num_harts << 2)) {
         size_t hartid = swi->hartid_base + (addr >> 2);
         CPUState *cpu = cpu_by_arch_id(hartid);
