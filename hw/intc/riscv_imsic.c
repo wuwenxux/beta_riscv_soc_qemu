@@ -81,7 +81,17 @@ static void riscv_imsic_update(RISCVIMSICState *imsic, uint32_t page)
     if (qatomic_fetch_and(&imsic->eistate[base], ~IMSIC_EISTATE_ENPEND)) {
         qemu_irq_lower(imsic->external_irqs[page]);
     }
-    if (imsic->eidelivery[page] && riscv_imsic_topei(imsic, page)) {
+    uint32_t topei_val = riscv_imsic_topei(imsic, page);
+    /* Beta debug: trace IPI delivery for low-hartid M-IMSICs */
+    if (imsic->mmode && imsic->hartid < 4) {
+        qemu_log_mask(LOG_UNIMP,
+            "imsic_update: hartid=%u page=%u eidelivery=%u topei=%u "
+            "eistate[1]=0x%x eithreshold=%u\n",
+            imsic->hartid, page, imsic->eidelivery[page], topei_val,
+            qatomic_read(&imsic->eistate[base + 1]),
+            imsic->eithreshold[page]);
+    }
+    if (imsic->eidelivery[page] && topei_val) {
         qemu_irq_raise(imsic->external_irqs[page]);
         qatomic_or(&imsic->eistate[base], IMSIC_EISTATE_ENPEND);
     }
@@ -314,6 +324,13 @@ static void riscv_imsic_write(void *opaque, hwaddr addr, uint64_t value,
 
     /* Writes only supported for MSI little-endian registers */
     page = addr >> IMSIC_MMIO_PAGE_SHIFT;
+    if (imsic->mmode) {
+        qemu_log_mask(LOG_UNIMP,
+            "imsic_write: hartid=%u addr=0x%"HWADDR_PRIx" value=%"PRIu64
+            " page=%u is_le=%d\n",
+            imsic->hartid, addr, value, page,
+            (addr & (IMSIC_MMIO_PAGE_SZ - 1)) == IMSIC_MMIO_PAGE_LE);
+    }
     if ((addr & (IMSIC_MMIO_PAGE_SZ - 1)) == IMSIC_MMIO_PAGE_LE) {
         if (value && (value < imsic->num_irqs)) {
             qatomic_or(&imsic->eistate[(page * imsic->num_irqs) + value],
