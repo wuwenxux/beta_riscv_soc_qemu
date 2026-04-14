@@ -1,0 +1,88 @@
+#!/bin/sh
+# =============================================================================
+# /init_net — Beta SoC QEMU regression Round 3 network init
+#
+# This script is injected into the base initramfs as /init_net and launched
+# via kernel param: rdinit=/init_net
+#
+# It configures eth0 (VirtIO NIC on PCIe), runs DHCP, pings the QEMU
+# user-mode gateway (10.0.2.2), and prints a machine-readable result.
+#
+# The regression test watches for one of:
+#   NETWORK_TEST_PASS  — all steps succeeded
+#   NETWORK_TEST_FAIL  — at least one step failed
+# =============================================================================
+
+NET_RESULT=0
+
+_pass() { echo "[NET] PASS: $*"; }
+_fail() { echo "[NET] FAIL: $*"; NET_RESULT=1; }
+_info() { echo "[NET] INFO: $*"; }
+
+# ── Mount essential filesystems ───────────────────────────────────────────
+mount -t proc     proc    /proc  2>/dev/null
+mount -t sysfs    sysfs   /sys   2>/dev/null
+mount -t devtmpfs devtmpfs /dev  2>/dev/null || mdev -s 2>/dev/null
+
+_info "init_net started"
+
+# ── Wait for eth0 to appear ───────────────────────────────────────────────
+_info "Waiting for eth0..."
+WAITED=0
+while [ $WAITED -lt 10 ]; do
+    if ip link show eth0 >/dev/null 2>&1; then
+        _pass "eth0 interface present"
+        break
+    fi
+    sleep 1
+    WAITED=$(( WAITED + 1 ))
+done
+
+if ! ip link show eth0 >/dev/null 2>&1; then
+    _fail "eth0 not present after 10 s — virtio_net_probe() likely did not complete"
+    echo "NETWORK_TEST_FAIL"
+    exec /bin/sh
+fi
+
+# ── Bring up interface ────────────────────────────────────────────────────
+ip link set eth0 up 2>/dev/null
+if ip link show eth0 | grep -q "UP"; then
+    _pass "eth0 link up"
+else
+    _fail "eth0 link up failed"
+fi
+
+# ── DHCP via udhcpc ──────────────────────────────────────────────────────
+# -n = exit if no lease  -q = quit after obtaining lease
+# -s = script to run on bound/renew  -t = try count  -T = timeout per try
+_info "Running DHCP on eth0..."
+if udhcpc -i eth0 -n -q \
+           -s /etc/udhcpc.sh \
+           -t 5 -T 3 2>/dev/null; then
+    # Verify we got an IP in the QEMU user-net range
+    IP=$(ip addr show eth0 2>/dev/null | grep 'inet ' | awk '{print $2}' | head -1)
+    _pass "DHCP bound: ${IP:-<unknown>}"
+else
+    _fail "udhcpc failed to obtain a lease"
+    NET_RESULT=1
+fi
+
+# ── Ping QEMU user-mode gateway ───────────────────────────────────────────
+GW="10.0.2.2"
+_info "Pinging $GW ..."
+if ping -c 3 -W 2 "$GW" >/dev/null 2>&1; then
+    _pass "ping $GW — 3/3 packets OK"
+else
+    _fail "ping $GW failed"
+    NET_RESULT=1
+fi
+
+# ── Final result marker (parsed by regression.sh) ────────────────────────
+if [ "$NET_RESULT" -eq 0 ]; then
+    echo "NETWORK_TEST_PASS"
+else
+    echo "NETWORK_TEST_FAIL"
+fi
+
+# Drop to shell so QEMU can be killed cleanly by the test harness
+exec /bin/sh
