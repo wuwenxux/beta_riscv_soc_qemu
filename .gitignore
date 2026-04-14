@@ -14,11 +14,18 @@ rootfs/ubuntu-*.tar.*
 # QEMU build directory
 qemu-10.0.2-beta/build/
 
-# Test binary artifacts
+# Test binary artifacts and build outputs
 tests/bm.*.bin
 tests/bm.*.elf
+tests/bm_*.bin
+tests/bm_*.elf
 tests/baremetal/bm.bin
 tests/baremetal/bm.elf
 tests/baremetal/bm.hex
 tests/baremetal/bm.S
+tests/baremetal/output_backup*/
 tests/logs/
+
+# macOS extended attribute sidecar files
+._*
+**/._.DS_Store
