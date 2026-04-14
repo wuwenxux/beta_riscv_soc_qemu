@@ -1,0 +1,175 @@
+{
+  "_comment": "Beta SoC bare-metal test config — single ACPU core, acpu_direct mode",
+  "version": "1.0",
+
+  "acpu": {
+    "num_clusters": 1,
+    "cores_per_cluster": 2,
+    "hartid_base": 0,
+    "isa": "rv64imafdc",
+    "mmu_mode": "sv39",
+    "pma_type": "none",
+    "reset_vector": "0x80000000",
+    "mvendorid": "0x0",
+    "marchid": "0x0",
+    "mimpid": "0x0"
+  },
+
+  "mcpu": {
+    "num_cores": 1,
+    "isa": "rv32imac",
+    "itcm_kb": 64,
+    "dtcm_kb": 64,
+    "sram_kb": 256,
+    "reset_vector": "0x00001000",
+    "hartid_base": 32
+  },
+
+  "memory_regions": [
+    {
+      "name": "null_guard",
+      "base": "0x00000000",
+      "size": "0x00001000",
+      "type": "ram",
+      "cpu_visible": "acpu",
+      "_comment": "Absorb spurious store to addr 0 from bm_0407_qemu.elf BSS branch offset bug"
+    },
+    {
+      "name": "bootrom",
+      "base": "0x00001000",
+      "size": "0x00003000",
+      "type": "rom",
+      "cpu_visible": "mcpu"
+    },
+    {
+      "name": "ddr",
+      "base": "0x80000000",
+      "size": "0x08000000",
+      "type": "ram",
+      "cpu_visible": "acpu"
+    }
+  ],
+
+  "interrupts": {
+    "aplic": {
+      "num_sources": 64,
+      "domains": [
+        {
+          "name": "m_root",
+          "level": "m",
+          "base": "0x0D000000",
+          "size": "0x00004000",
+          "parent": null
+        },
+        {
+          "name": "s_app",
+          "level": "s",
+          "base": "0x0D004000",
+          "size": "0x00004000",
+          "parent": "m_root"
+        }
+      ]
+    },
+    "imsic": {
+      "m_base": "0x24000000",
+      "s_base": "0x28000000",
+      "num_ids": 255,
+      "num_vs_files": 0,
+      "guest_index_bits": 0
+    },
+    "clint": {
+      "base": "0x02000000",
+      "size": "0x00010000",
+      "timebase_freq": 10000000
+    },
+    "plic": {
+      "base": "0x0C000000",
+      "size": "0x00400000",
+      "num_sources": 64,
+      "num_priorities": 7
+    },
+    "irq_map": [
+      { "name": "uart0", "irq_num": 10, "target": "aplic", "domain": "s_app" }
+    ]
+  },
+
+  "devices": [
+    {
+      "name": "uart0",
+      "type": "uart",
+      "base": "0xd0087000",
+      "size": "0x00000100",
+      "cpu_target": "both",
+      "compatible": "ns16550a",
+      "irq_name": "uart0",
+      "clock_hz": 10000000,
+      "instance_id": 0
+    },
+    {
+      "name": "l2csr_stub",
+      "type": "generic_mmio",
+      "base": "0x110100000",
+      "size": "0x00100000",
+      "cpu_target": "acpu",
+      "_comment": "L2 cache CSR stub — absorbs cache_status/cache_disable reads, returns 0 (cache disabled)"
+    },
+    {
+      "name": "soc_csr",
+      "type": "soc_top_csr",
+      "base": "0x100000000",
+      "size": "0x00002000",
+      "cpu_target": "both",
+      "registers": [
+        { "name": "ACPU_BOOT_ADDR_L_0",  "offset": "0x000", "width": 4, "access": "rw", "reset_value": "0x80000000" },
+        { "name": "ACPU_BOOT_ADDR_H_0",  "offset": "0x100", "width": 4, "access": "rw", "reset_value": "0x0" },
+        { "name": "XIP_CTRL",            "offset": "0x808", "width": 4, "access": "rw", "reset_value": "0x0" },
+        { "name": "SW_RST_CTRL0",        "offset": "0x80C", "width": 4, "access": "rw", "reset_value": "0x1" },
+        { "name": "SW_RST_CTRL1",        "offset": "0x810", "width": 4, "access": "rw", "reset_value": "0x1" },
+        { "name": "SW_RST_CTRL2",        "offset": "0x814", "width": 4, "access": "rw", "reset_value": "0x0" },
+        { "name": "MCPU_PLL_CTRL0",      "offset": "0x820", "width": 4, "access": "rw", "reset_value": "0x3e7c4ec5" },
+        { "name": "ACPU_PLL_CTRL0",      "offset": "0x840", "width": 4, "access": "rw", "reset_value": "0x336241a4" },
+        { "name": "NOC_PLL_CTRL0",       "offset": "0x860", "width": 4, "access": "rw", "reset_value": "0x3a7d89d9" },
+        { "name": "PCIE0_PLL_CTRL0",     "offset": "0x900", "width": 4, "access": "rw", "reset_value": "0x2663b13b" },
+        { "name": "PCIE1_PLL_CTRL0",     "offset": "0x904", "width": 4, "access": "rw", "reset_value": "0x2663b13b" },
+        { "name": "PCIE2_PLL_CTRL0",     "offset": "0x908", "width": 4, "access": "rw", "reset_value": "0x2663b13b" },
+        { "name": "PCIE3_PLL_CTRL0",     "offset": "0x90c", "width": 4, "access": "rw", "reset_value": "0x2663b13b" },
+        { "name": "PCIE_MODE_CTRL",      "offset": "0x980", "width": 4, "access": "rw", "reset_value": "0x0" },
+        { "name": "PERIPH_CLK_DIV",      "offset": "0xA00", "width": 4, "access": "rw", "reset_value": "0x1" },
+        { "name": "CG_CTRL",             "offset": "0xA04", "width": 4, "access": "rw", "reset_value": "0x0" },
+        { "name": "BOOT_STATUS",         "offset": "0xA08", "width": 4, "access": "rw", "reset_value": "0x0" },
+        { "name": "MCPU_RST_STATUS",     "offset": "0xA0C", "width": 4, "access": "rw", "reset_value": "0x0" },
+        { "name": "ACPU_PLL_STATUS",     "offset": "0xA20", "width": 4, "access": "rw", "reset_value": "0x1" },
+        { "name": "MCPU_PLL_STATUS",     "offset": "0xA24", "width": 4, "access": "rw", "reset_value": "0x1" },
+        { "name": "NOC_PLL_STATUS",      "offset": "0xA28", "width": 4, "access": "rw", "reset_value": "0x1" },
+        { "name": "PCIE0_PLL_STATUS",    "offset": "0xa40", "width": 4, "access": "ro", "reset_value": "0x1" },
+        { "name": "PCIE1_PLL_STATUS",    "offset": "0xa44", "width": 4, "access": "ro", "reset_value": "0x1" },
+        { "name": "PCIE2_PLL_STATUS",    "offset": "0xa48", "width": 4, "access": "ro", "reset_value": "0x1" },
+        { "name": "PCIE3_PLL_STATUS",    "offset": "0xa4c", "width": 4, "access": "ro", "reset_value": "0x1" },
+        { "name": "SPI_MODE_CTRL",       "offset": "0xB00", "width": 4, "access": "rw", "reset_value": "0x3" },
+        { "name": "SW_PLL_BYPASS_CTRL",      "offset": "0xc10", "width": 4, "access": "rw", "reset_value": "0xff" },
+        { "name": "SW_PLL_LOCK_FORCE_CTRL",  "offset": "0xc14", "width": 4, "access": "rw", "reset_value": "0x0" }
+      ]
+    }
+  ],
+
+  "ddr": {
+    "num_channels": 1,
+    "channel_width_bits": 64,
+    "speed_mbps": 3200,
+    "max_per_channel_gb": 1,
+    "interleave_step_bytes": 64,
+    "channels": [
+      { "id": 0, "ctrl_base": "0x20000000", "mem_base": "0x80000000", "size": "0x08000000" }
+    ]
+  },
+
+  "boot": {
+    "mode": "acpu_direct",
+    "bootrom_base": "0x00001000",
+    "bootrom_size": "0x00003000",
+    "flash_base": "0x00000000",
+    "flash_size": "0x00000000",
+    "mcpu_entry": "0x00001000",
+    "acpu_entry": "0x80000000"
+  }
+}
