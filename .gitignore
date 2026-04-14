@@ -29,3 +29,8 @@ tests/logs/
 # macOS extended attribute sidecar files
 ._*
 **/._.DS_Store
+
+# Baremetal test binary packages
+bm.tar.gz
+bm_*.bin
+bm_*.elf
