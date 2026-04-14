@@ -1,0 +1,21 @@
+# Build artifacts
+build/
+*.o
+*.a
+*.so
+*.pyc
+__pycache__/
+
+# Editor and OS artifacts
+.DS_Store
+*.swp
+*.swo
+*~
+
+# QEMU generated files
+trace-events-all
+VERSION.generated
+
+# LSP / editor caches
+.cache/
+compile_commands.json

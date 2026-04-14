@@ -1,0 +1,317 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Beta SoC BSP Team <bsp@beta-soc.example.com>
+Date: Wed, 09 Apr 2026 00:00:00 +0000
+Subject: [PATCH] riscv: handle sparse DDR channels outside sv39 linear
+ mapping
+
+Beta SoC has 8 DDR channels with a physical layout that spans 452 GB:
+
+  Channel 0: 0x40_0000_0000 (256 GB base), 4 GB
+  Channel 1: 0x50_0000_0000 (320 GB base), 4 GB
+  Channel 2: 0x60_0000_0000 (384 GB base), 4 GB
+  Channel 3: 0x70_0000_0000 (448 GB base), 4 GB
+  Channel 4: 0x80_0000_0000 (512 GB base), 4 GB
+  Channel 5: 0x90_0000_0000 (576 GB base), 4 GB
+  Channel 6: 0xa0_0000_0000 (640 GB base), 4 GB
+  Channel 7: 0xb0_0000_0000 (704 GB base), 4 GB
+
+Each channel is separated from the next by a 60 GB physical hole (64 GB
+inter-channel stride, 4 GB occupied).  The total physical address span
+from the first to the last byte is approximately 452 GB.
+
+Under Sv39 the RISC-V linear mapping uses a fixed PA→VA offset
+(va_pa_offset = PAGE_OFFSET − phys_ram_base).  The maximum physical
+address span that can be covered is KERN_VIRT_SIZE, which for Sv39 is
+128 GB.  The chip does not implement Sv48, so that virtual address space
+cannot be extended.
+
+Consequence
+-----------
+With phys_ram_base = 0x40_0000_0000 the usable linear mapping window is
+
+  [0x40_0000_0000, 0x60_0000_0000)   (128 GB)
+
+Only channels 0 and 1 fall inside this window (8 GB total).  Channels
+2–7 (24 GB) lie at or beyond 0x60_0000_0000 and cannot be reached via
+the fixed-offset mapping.
+
+Why "skipping holes" in virtual address space does not help
+-----------------------------------------------------------
+Because the linear mapping uses a single global offset, a hole in
+physical address space produces an equally-sized hole in virtual address
+space.  The total *span* consumed by the mapping is determined by
+max(PA_end) − phys_ram_base regardless of how sparse the actual data is.
+For Beta SoC that span is 452 GB, far exceeding the 128 GB budget.
+
+A non-fixed-offset mapping (e.g. per-bank page-table entries with
+independent VA assignments) would allow fitting all 32 GB into the 128 GB
+VA budget, but it would break the __va/__pa fast-path macros used
+throughout the kernel.  Such a redesign is out of scope for this SoC
+bring-up patch.
+
+What this patch does
+--------------------
+The existing kernel code (Stuart Menefy, "riscv: Fix linear mapping
+checks for non-contiguous memory regions", merged ~v6.11) already calls
+memblock_cap_memory_range() to silently drop memory outside the window.
+This patch wraps that call with:
+
+  1. A pre-cap enumeration of every memblock region that will be removed,
+     printed as pr_warn() lines so the operator can see exactly which
+     DDR channels were excluded and why.
+
+  2. A summary warning with the excluded byte count and a hint that Sv48
+     (or reducing the number of active DDR channels) would be needed for
+     full coverage.
+
+  3. A safety assertion in create_linear_mapping_page_table() that fires
+     a WARN_ON if any region ever reaches page-table construction with a
+     PA above the linear mapping ceiling (defensive belt-and-suspenders
+     for future kernel versions that may reorganise setup_bootmem).
+
+The call to memblock_cap_memory_range() is preserved unchanged; only the
+diagnostic layer is added.
+
+Expected output on Beta SoC (Sv39, 8 DDR channels):
+
+  riscv: sv39 linear mapping: window [mem 0x40000000000-0x5ffffffffff] (128 GiB)
+  riscv: physical memory outside linear mapping window:
+  riscv:   [mem 0x60000000000-0x610000000ff]  4096 MiB  — excluded
+  riscv:   [mem 0x70000000000-0x710000000ff]  4096 MiB  — excluded
+  riscv:   [mem 0x80000000000-0x810000000ff]  4096 MiB  — excluded
+  riscv:   [mem 0x90000000000-0x910000000ff]  4096 MiB  — excluded
+  riscv:   [mem 0xa0000000000-0xa10000000ff]  4096 MiB  — excluded
+  riscv:   [mem 0xb0000000000-0xb10000000ff]  4096 MiB  — excluded
+  riscv: 6 DDR region(s) (24576 MiB) excluded; 8192 MiB available in linear mapping
+  riscv: enable sv48 or reduce active DDR channels for full physical memory access
+
+References
+----------
+- Stuart Menefy (Codasip), "riscv: Fix linear mapping checks for
+  non-contiguous memory regions", 2024-06-22
+  <https://lore.kernel.org/linux-riscv/20240622114217.2158495-1-stuart.menefy@codasip.com/>
+- Alexandre Ghiti (Rivos), commit 5c8405d763dc,
+  "riscv: Extend sv39 linear mapping max size to 128G", 2024-05-14
+
+Signed-off-by: Beta SoC BSP Team <bsp@beta-soc.example.com>
+---
+ arch/riscv/mm/init.c | 102 ++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 98 insertions(+), 4 deletions(-)
+
+diff --git a/arch/riscv/mm/init.c b/arch/riscv/mm/init.c
+index XXXXXXXXXXXXXXX..YYYYYYYYYYYYYYY 100644
+--- a/arch/riscv/mm/init.c
++++ b/arch/riscv/mm/init.c
+@@ -195,6 +195,84 @@ static void __init setup_vm_final(void);
+
+ #ifdef CONFIG_MMU
+
++#if defined(CONFIG_64BIT) && defined(CONFIG_MMU)
++/*
++ * riscv_linear_map_report - warn about DDR regions outside the sv39/48/57
++ * linear mapping window.
++ *
++ * Called from setup_bootmem() *before* memblock_cap_memory_range() removes
++ * the out-of-window regions, so we can enumerate them while they are still
++ * present in memblock and emit human-readable diagnostics.
++ *
++ * Background: the RISC-V linear mapping uses a fixed PA→VA offset
++ * (PAGE_OFFSET − phys_ram_base).  The total physical address *span* that
++ * can be covered equals KERN_VIRT_SIZE regardless of sparsity:
++ *
++ *   Sv39 : 128 GB   (PTRS_PER_PGD/2 × PGDIR_SIZE / 2)
++ *   Sv48 : 128 GB   (same formula, wider PGDIR_SIZE)
++ *   Sv57 : 128 GB   (same formula again)
++ *
++ * For SoCs with sparse multi-channel DDR whose total physical span exceeds
++ * this limit (e.g. Beta SoC: 8 channels × 64 GB stride = 452 GB span),
++ * only the channels whose base address falls within [phys_ram_base,
++ * phys_ram_base + KERN_VIRT_SIZE) are usable.  The remainder are silently
++ * dropped by memblock_cap_memory_range().  This helper makes the truncation
++ * visible to the operator.
++ */
++static void __init riscv_linear_map_report(phys_addr_t ram_base,
++					   phys_addr_t linear_map_end)
++{
++	phys_addr_t start, end;
++	phys_addr_t excluded_bytes = 0;
++	int excluded_count = 0;
++	int sv_mode;
++	u64 i;
++
++	/* Determine active MMU mode for diagnostic messages. */
++	sv_mode = pgtable_l5_enabled ? 57 : (pgtable_l4_enabled ? 48 : 39);
++
++	pr_info("riscv: sv%d linear mapping: window [mem %pa-%pa] (%lu GiB)\n",
++		sv_mode, &ram_base, &linear_map_end,
++		(unsigned long)(KERN_VIRT_SIZE >> 30));
++
++	/*
++	 * Walk all memblock regions *before* the cap.  Any region whose end
++	 * address exceeds linear_map_end will be removed (fully or partially).
++	 */
++	for_each_mem_range(i, &start, &end) {
++		phys_addr_t excl_start, excl_size;
++
++		if (end <= linear_map_end)
++			continue; /* fully inside window — OK */
++
++		excl_start = max(start, linear_map_end);
++		excl_size  = end - excl_start;
++
++		if (excluded_count == 0)
++			pr_warn("riscv: physical memory outside linear mapping window:\n");
++
++		pr_warn("riscv:   [mem %pa-%pa]  %lu MiB  — excluded\n",
++			&excl_start, &end,
++			(unsigned long)(excl_size >> 20));
++
++		excluded_bytes += excl_size;
++		excluded_count++;
++	}
++
++	if (excluded_count > 0) {
++		phys_addr_t avail = linear_map_end - ram_base;
++		/*
++		 * Suggest the next MMU level that would provide a larger window.
++		 * sv39→sv48 or sv48→sv57; beyond sv57 there is no wider mode.
++		 */
++		int next_sv = (sv_mode < 57) ? sv_mode + 9 : 0;
++
++		pr_warn("riscv: %d DDR region(s) (%lu MiB) excluded; %lu MiB available in linear mapping\n",
++			excluded_count,
++			(unsigned long)(excluded_bytes >> 20),
++			(unsigned long)(avail >> 20));
++		if (next_sv)
++			pr_warn("riscv: enable sv%d or reduce active DDR channels for full physical memory access\n",
++				next_sv);
++		else
++			pr_warn("riscv: no wider MMU mode available; reduce active DDR channels\n");
++	}
++}
++#endif /* CONFIG_64BIT && CONFIG_MMU */
++
+ static void __init setup_bootmem(void)
+ {
+ 	phys_addr_t vmlinux_end = __pa_symbol(&_end);
+@@ -233,14 +311,26 @@ static void __init setup_bootmem(void)
+ 	if (IS_ENABLED(CONFIG_64BIT) && IS_ENABLED(CONFIG_MMU))
+ 		kernel_map.va_pa_offset = PAGE_OFFSET - phys_ram_base;
+
+-	/*
+-	 * The size of the linear page mapping may restrict the amount of
+-	 * usable RAM.
+-	 */
+-	if (IS_ENABLED(CONFIG_64BIT) && IS_ENABLED(CONFIG_MMU)) {
+-		max_mapped_addr = __pa(PAGE_OFFSET) + KERN_VIRT_SIZE;
+-		memblock_cap_memory_range(phys_ram_base,
+-					  max_mapped_addr - phys_ram_base);
+-	}
++	/*
++	 * The size of the linear page mapping restricts the amount of usable
++	 * RAM.  For Sv39 the ceiling is 128 GB from phys_ram_base; anything
++	 * beyond that physical address cannot be mapped via the fixed-offset
++	 * linear mapping.
++	 *
++	 * SoCs with sparse multi-channel DDR (e.g. Beta SoC: 8 × 4 GB
++	 * channels spaced 64 GB apart, total span ≈ 452 GB) will lose all
++	 * channels whose base address falls outside this window.  We emit
++	 * pr_warn() messages identifying each excluded region *before*
++	 * memblock_cap_memory_range() silently removes them.
++	 *
++	 * Note: remapping each channel to a contiguous virtual range (i.e.
++	 * collapsing physical holes into the VA space) would allow fitting
++	 * all 32 GB of Beta SoC DDR into the 128 GB VA budget, but would
++	 * require per-bank page-table entries and break the __va/__pa fast
++	 * paths.  This is not implemented; Sv48 support is the correct fix.
++	 */
++	if (IS_ENABLED(CONFIG_64BIT) && IS_ENABLED(CONFIG_MMU)) {
++		max_mapped_addr = __pa(PAGE_OFFSET) + KERN_VIRT_SIZE;
++		riscv_linear_map_report(phys_ram_base, max_mapped_addr);
++		memblock_cap_memory_range(phys_ram_base,
++					  max_mapped_addr - phys_ram_base);
++	}
+
+ 	/*
+ 	 * Reserve physical address space that would be mapped to virtual
+@@ -262,7 +352,11 @@ static void __init setup_bootmem(void)
+ 	high_memory = (void *)(__va(PFN_PHYS(max_low_pfn)));
+
+ 	dma32_phys_limit = min(4UL * SZ_1G, (unsigned long)PFN_PHYS(max_low_pfn));
+-	set_max_mapnr(max_low_pfn - ARCH_PFN_OFFSET);
++	set_max_mapnr(max_low_pfn - ARCH_PFN_OFFSET);
++
++	pr_info("riscv: %lu MiB of physical memory available (phys_ram_base %pa)\n",
++		(unsigned long)((PFN_PHYS(max_low_pfn) - phys_ram_base) >> 20),
++		&phys_ram_base);
+
+ 	reserve_initrd_mem();
+
+@@ -1265,6 +1359,18 @@ static void __init create_linear_mapping_page_table(void)
+
+ 	/* Map all memory banks in the linear mapping */
+ 	for_each_mem_range(i, &start, &end) {
++#if defined(CONFIG_64BIT) && defined(CONFIG_MMU)
++		/*
++		 * Defensive check: setup_bootmem() should have removed all
++		 * regions beyond the linear mapping ceiling via
++		 * memblock_cap_memory_range().  If a region somehow slips
++		 * through (e.g. kernel version reorganisation), catch it here
++		 * rather than silently producing an invalid mapping.
++		 */
++		WARN_ON_ONCE(end > __pa(PAGE_OFFSET) + KERN_VIRT_SIZE);
++		if (end > __pa(PAGE_OFFSET) + KERN_VIRT_SIZE)
++			end = __pa(PAGE_OFFSET) + KERN_VIRT_SIZE;
++#endif
++
+ 		if (start >= end)
+ 			break;
+ 		if (start <= __pa(PAGE_OFFSET) &&
+--
+2.49.0
+
+---
+Notes for applying this patch
+==============================
+
+Target kernel
+  Linux 6.19.5 (as used by the Beta SoC QEMU reference platform).
+  The patch is written against the arch/riscv/mm/init.c structure present
+  in Linux 6.11–6.19 (after Stuart Menefy's memblock_cap_memory_range
+  fix landed).  The hunk offsets are approximate; use `patch -p1 --fuzz 3`
+  or `git apply --reject` and resolve any offset mismatches manually.
+
+How to apply
+  cd /path/to/linux-6.19.5
+  git apply --whitespace=fix \
+    0001-riscv-handle-sparse-DDR-outside-sv39-linear-mapping.patch
+
+  If git apply fails due to line-number drift (common for non-exact
+  versions), apply with fuzz:
+    patch -p1 --fuzz=5 < \
+      0001-riscv-handle-sparse-DDR-outside-sv39-linear-mapping.patch
+
+  Then rebuild:
+    make ARCH=riscv CROSS_COMPILE=riscv64-linux-gnu- -j$(nproc) Image
+
+What changes (summary)
+  arch/riscv/mm/init.c:
+    + riscv_linear_map_report()          — new diagnostic helper
+    ~ setup_bootmem()                    — call helper before cap; add
+                                           available-memory info log
+    ~ create_linear_mapping_page_table() — WARN_ON defensive ceiling check
+
+After-patch behaviour for Beta SoC (Sv39, 8 DDR channels)
+  Linear mapping window : [0x40000000000, 0x60000000000)  (128 GiB)
+  Channels inside window: 0 (0x40000000000) and 1 (0x50000000000) → 8 GiB
+  Channels excluded     : 2–7 (0x60000000000–0xb0000000000) → 24 GiB lost
+
+  Boot log will show pr_warn() lines for each excluded channel, making the
+  truncation visible rather than silent.
+
+Long-term fix
+  The chip does not support Sv48.  To use all 32 GiB either:
+    a) Reduce active DDR channels to ≤ 2 (fitting within the 128 GiB span).
+    b) Add Sv48 hardware support to the chip.
+    c) Implement a non-fixed-offset per-bank page-table scheme (complex,
+       breaks __va/__pa fast paths — not recommended).

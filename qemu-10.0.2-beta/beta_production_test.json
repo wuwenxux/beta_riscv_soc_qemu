@@ -1,0 +1,7226 @@
+{
+  "_comment": "Beta SoC production config \u2014 matches real hardware memory map",
+  "version": "2.0",
+  "acpu": {
+    "num_clusters": 1,
+    "cores_per_cluster": 2,
+    "hartid_base": 0,
+    "isa": "rv64imafdc",
+    "mmu_mode": "sv39",
+    "pma_type": "none",
+    "reset_vector": "0x4000000000"
+  },
+  "mcpu": {
+    "num_cores": 1,
+    "isa": "rv32imac",
+    "itcm_kb": 64,
+    "dtcm_kb": 64,
+    "sram_kb": 256,
+    "reset_vector": "0x00D0000000"
+  },
+  "memory_regions": [
+    {
+      "name": "mcpu_rom",
+      "base": "0x00D0000000",
+      "size": "0x00010000",
+      "type": "rom",
+      "cpu_visible": "mcpu",
+      "_comment": "MCPU BootROM 64KB @ 0x00_D000_0000"
+    },
+    {
+      "name": "mcpu_sram",
+      "base": "0x00F0000000",
+      "size": "0x00080000",
+      "type": "ram",
+      "cpu_visible": "mcpu",
+      "_comment": "Cluster SRAM 512KB @ 0x00_F000_0000"
+    },
+    {
+      "name": "ddr0",
+      "base": "0x4000000000",
+      "size": "0x20000000",
+      "type": "ram",
+      "cpu_visible": "acpu",
+      "_comment": "DDR0 4GB @ 0x40_0000_0000 (reduced for QEMU)"
+    },
+    {
+      "name": "l3ram0",
+      "base": "0x730000000",
+      "size": "0x00100000",
+      "type": "ram",
+      "cpu_visible": "acpu",
+      "_comment": "L3 Cache slice 0 OCM/Scratchpad (1MB)"
+    },
+    {
+      "name": "l3ram1",
+      "base": "0x730100000",
+      "size": "0x00100000",
+      "type": "ram",
+      "cpu_visible": "acpu",
+      "_comment": "L3 Cache slice 1 OCM/Scratchpad (1MB)"
+    },
+    {
+      "name": "l3ram2",
+      "base": "0x730200000",
+      "size": "0x00100000",
+      "type": "ram",
+      "cpu_visible": "acpu",
+      "_comment": "L3 Cache slice 2 OCM/Scratchpad (1MB)"
+    },
+    {
+      "name": "l3ram3",
+      "base": "0x730300000",
+      "size": "0x00100000",
+      "type": "ram",
+      "cpu_visible": "acpu",
+      "_comment": "L3 Cache slice 3 OCM/Scratchpad (1MB)"
+    },
+    {
+      "name": "l3ram4",
+      "base": "0x730400000",
+      "size": "0x00100000",
+      "type": "ram",
+      "cpu_visible": "acpu",
+      "_comment": "L3 Cache slice 4 OCM/Scratchpad (1MB)"
+    },
+    {
+      "name": "l3ram5",
+      "base": "0x730500000",
+      "size": "0x00100000",
+      "type": "ram",
+      "cpu_visible": "acpu",
+      "_comment": "L3 Cache slice 5 OCM/Scratchpad (1MB)"
+    },
+    {
+      "name": "l3ram6",
+      "base": "0x730600000",
+      "size": "0x00100000",
+      "type": "ram",
+      "cpu_visible": "acpu",
+      "_comment": "L3 Cache slice 6 OCM/Scratchpad (1MB)"
+    },
+    {
+      "name": "l3ram7",
+      "base": "0x730700000",
+      "size": "0x00100000",
+      "type": "ram",
+      "cpu_visible": "acpu",
+      "_comment": "L3 Cache slice 7 OCM/Scratchpad (1MB)"
+    },
+    {
+      "name": "bt_spi_xip",
+      "base": "0x00D8000000",
+      "size": "0x08000000",
+      "type": "rom",
+      "cpu_visible": "mcpu",
+      "_comment": "Boot SPI Execute-in-Place flash (128MB)"
+    }
+  ],
+  "interrupts": {
+    "aplic": {
+      "num_sources": 64,
+      "domains": [
+        {
+          "name": "m_root",
+          "level": "m",
+          "base": "0x0110000000",
+          "size": "0x00004000",
+          "parent": null,
+          "_comment": "APLIC M-mode in SOC TOP CSR space"
+        },
+        {
+          "name": "s_app",
+          "level": "s",
+          "base": "0x0110004000",
+          "size": "0x00004000",
+          "parent": "m_root",
+          "_comment": "APLIC S-mode in SOC TOP CSR space"
+        }
+      ]
+    },
+    "imsic": {
+      "m_base": "0x0110200000",
+      "s_base": "0x0110400000",
+      "num_ids": 255,
+      "num_vs_files": 4,
+      "guest_index_bits": 3,
+      "_comment": "IMSIC M: 0x01_1020_0000, S/G: 0x01_1040_0000, GEILEN=4 (confirmed)"
+    },
+    "clint": {
+      "base": "0x0600000000",
+      "size": "0x00100000",
+      "timebase_freq": 10000000,
+      "_comment": "CLINT @ 0x06_0000_0000, 1MB"
+    },
+    "plic": {
+      "base": "0x0",
+      "size": "0x0",
+      "num_sources": 0,
+      "num_priorities": 0,
+      "_comment": "No legacy PLIC, using AIA (APLIC+IMSIC) only"
+    },
+    "irq_map": [
+      {
+        "name": "uart0",
+        "irq_num": 10,
+        "target": "aplic",
+        "domain": "s_app"
+      },
+      {
+        "name": "pcie0_msi",
+        "irq_num": 20,
+        "target": "aplic",
+        "domain": "s_app"
+      },
+      {
+        "name": "pcie0_intx",
+        "irq_num": 21,
+        "target": "aplic",
+        "domain": "s_app"
+      },
+      {
+        "name": "pcie1_msi",
+        "irq_num": 22,
+        "target": "aplic",
+        "domain": "s_app"
+      },
+      {
+        "name": "pcie1_intx",
+        "irq_num": 23,
+        "target": "aplic",
+        "domain": "s_app"
+      },
+      {
+        "name": "pcie2_msi",
+        "irq_num": 24,
+        "target": "aplic",
+        "domain": "s_app"
+      },
+      {
+        "name": "pcie2_intx",
+        "irq_num": 25,
+        "target": "aplic",
+        "domain": "s_app"
+      },
+      {
+        "name": "pcie3_msi",
+        "irq_num": 26,
+        "target": "aplic",
+        "domain": "s_app"
+      },
+      {
+        "name": "pcie3_intx",
+        "irq_num": 27,
+        "target": "aplic",
+        "domain": "s_app"
+      }
+    ]
+  },
+  "devices": [
+    {
+      "name": "uart0",
+      "type": "uart",
+      "base": "0x00D0087000",
+      "size": "0x00001000",
+      "cpu_target": "both",
+      "compatible": "ns16550a",
+      "irq_name": "uart0",
+      "clock_hz": 3686400,
+      "instance_id": 0,
+      "_comment": "UART @ 0x00_D008_7000 in MGMT space"
+    },
+    {
+      "name": "soc_csr",
+      "type": "soc_top_csr",
+      "base": "0x0100000000",
+      "size": "0x00010000",
+      "cpu_target": "both",
+      "_comment": "SOC TOP CSR @ 0x01_0000_0000",
+      "registers": [
+        {
+          "name": "BOOT_ADDR",
+          "offset": "0x00",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "BOOT_ARG",
+          "offset": "0x08",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "CORE_RELEASE",
+          "offset": "0x10",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "RESET_CTRL",
+          "offset": "0x18",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "MGMT_BASE",
+          "offset": "0x0000",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x10800000000"
+        },
+        {
+          "name": "MGMT_MASK",
+          "offset": "0x0008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0FF00000000"
+        },
+        {
+          "name": "DDR0_BASE",
+          "offset": "0x10",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x4000000000"
+        },
+        {
+          "name": "DDR0_MASK",
+          "offset": "0x18",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0F000000000"
+        },
+        {
+          "name": "DDR1_BASE",
+          "offset": "0x20",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x5000000000"
+        },
+        {
+          "name": "DDR1_MASK",
+          "offset": "0x28",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0F000000000"
+        },
+        {
+          "name": "DDR2_BASE",
+          "offset": "0x30",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x6000000000"
+        },
+        {
+          "name": "DDR2_MASK",
+          "offset": "0x38",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0F000000000"
+        },
+        {
+          "name": "DDR3_BASE",
+          "offset": "0x40",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x7000000000"
+        },
+        {
+          "name": "DDR3_MASK",
+          "offset": "0x48",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0F000000000"
+        },
+        {
+          "name": "DDR4_BASE",
+          "offset": "0x50",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x8000000000"
+        },
+        {
+          "name": "DDR4_MASK",
+          "offset": "0x58",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0F000000000"
+        },
+        {
+          "name": "DDR5_BASE",
+          "offset": "0x60",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x9000000000"
+        },
+        {
+          "name": "DDR5_MASK",
+          "offset": "0x68",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0F000000000"
+        },
+        {
+          "name": "DDR6_BASE",
+          "offset": "0x70",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0xa000000000"
+        },
+        {
+          "name": "DDR6_MASK",
+          "offset": "0x78",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0F000000000"
+        },
+        {
+          "name": "DDR7_BASE",
+          "offset": "0x80",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0xb000000000"
+        },
+        {
+          "name": "DDR7_MASK",
+          "offset": "0x88",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0F000000000"
+        },
+        {
+          "name": "PCIE0_BASE",
+          "offset": "0x90",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x1000000000"
+        },
+        {
+          "name": "PCIE0_MASK",
+          "offset": "0x98",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0xf000000000"
+        },
+        {
+          "name": "PCIE1_BASE",
+          "offset": "0xa0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x2000000000"
+        },
+        {
+          "name": "PCIE1_MASK",
+          "offset": "0xa8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0xf000000000"
+        },
+        {
+          "name": "PCIE2_BASE",
+          "offset": "0xb0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x3000000000"
+        },
+        {
+          "name": "PCIE2_MASK",
+          "offset": "0xb8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0xf000000000"
+        },
+        {
+          "name": "PCIE3_BASE",
+          "offset": "0xc0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0xc000000000"
+        },
+        {
+          "name": "PCIE3_MASK",
+          "offset": "0xc8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0xc000000000"
+        },
+        {
+          "name": "SAM_CTRL",
+          "offset": "0x00F0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "HN0_BASE",
+          "offset": "0xf80",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "HN0_MASK",
+          "offset": "0xf88",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0E000000000"
+        },
+        {
+          "name": "HN1_BASE",
+          "offset": "0xf90",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x2000000000"
+        },
+        {
+          "name": "HN1_MASK",
+          "offset": "0xf98",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0E000000000"
+        },
+        {
+          "name": "HN2_BASE",
+          "offset": "0xfa0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x4000000000"
+        },
+        {
+          "name": "HN2_MASK",
+          "offset": "0xfa8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0E000000000"
+        },
+        {
+          "name": "HN3_BASE",
+          "offset": "0xfb0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x6000000000"
+        },
+        {
+          "name": "HN3_MASK",
+          "offset": "0xfb8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0E000000000"
+        },
+        {
+          "name": "HN4_BASE",
+          "offset": "0xfc0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x8000000000"
+        },
+        {
+          "name": "HN4_MASK",
+          "offset": "0xfc8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0E000000000"
+        },
+        {
+          "name": "HN5_BASE",
+          "offset": "0xfd0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0xa000000000"
+        },
+        {
+          "name": "HN5_MASK",
+          "offset": "0xfd8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0E000000000"
+        },
+        {
+          "name": "HN6_BASE",
+          "offset": "0xfe0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0xc000000000"
+        },
+        {
+          "name": "HN6_MASK",
+          "offset": "0xfe8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0E000000000"
+        },
+        {
+          "name": "HN7_BASE",
+          "offset": "0xff0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0xe000000000"
+        },
+        {
+          "name": "HN7_MASK",
+          "offset": "0xff8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0E000000000"
+        }
+      ]
+    },
+    {
+      "name": "scm_aia",
+      "type": "generic_mmio",
+      "base": "0x00D0040000",
+      "size": "0x00030000",
+      "cpu_target": "mcpu",
+      "_comment": "SCM AIA (MCPU interrupt controller) @ 0x00_D004_0000, 192KB",
+      "registers": []
+    },
+    {
+      "name": "scm_scr",
+      "type": "generic_mmio",
+      "base": "0x00D0070000",
+      "size": "0x00001000",
+      "cpu_target": "mcpu",
+      "_comment": "SCM SCR (SoC control) @ 0x00_D007_0000, 4KB",
+      "registers": []
+    },
+    {
+      "name": "rvdm",
+      "type": "generic_mmio",
+      "base": "0x0600100000",
+      "size": "0x00004000",
+      "cpu_target": "both",
+      "_comment": "RISC-V Debug Module @ 0x06_0010_0000, 16KB",
+      "registers": [
+        {
+          "name": "progbuf0",
+          "offset": "0x100",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "progbuf1",
+          "offset": "0x104",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "progbuf2",
+          "offset": "0x108",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "progbuf3",
+          "offset": "0x10c",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "progbuf4",
+          "offset": "0x110",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "progbuf5",
+          "offset": "0x114",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "progbuf6",
+          "offset": "0x118",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "progbuf7",
+          "offset": "0x11c",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "data0",
+          "offset": "0x140",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "data1",
+          "offset": "0x144",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "data2",
+          "offset": "0x148",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "dmstatus",
+          "offset": "0x170",
+          "width": 4,
+          "access": "ro",
+          "reset_value": "0xc0c82"
+        },
+        {
+          "name": "dmcontrol",
+          "offset": "0x174",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "hartinfo",
+          "offset": "0x178",
+          "width": 4,
+          "access": "ro",
+          "reset_value": "0x213000"
+        },
+        {
+          "name": "abstracts",
+          "offset": "0x17c",
+          "width": 4,
+          "access": "ro",
+          "reset_value": "0x8000003"
+        },
+        {
+          "name": "command",
+          "offset": "0x180",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "abstractauto",
+          "offset": "0x184",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "haltsum0",
+          "offset": "0x188",
+          "width": 4,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "haltsum1",
+          "offset": "0x18c",
+          "width": 4,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "haltsum2",
+          "offset": "0x190",
+          "width": 4,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "haltsum3",
+          "offset": "0x194",
+          "width": 4,
+          "access": "ro",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "wdt",
+      "type": "generic_mmio",
+      "base": "0x00D0080000",
+      "size": "0x00001000",
+      "cpu_target": "mcpu",
+      "_comment": "Watchdog Timer",
+      "registers": []
+    },
+    {
+      "name": "mbox_sem",
+      "type": "generic_mmio",
+      "base": "0x00D0081000",
+      "size": "0x00001000",
+      "cpu_target": "mcpu",
+      "_comment": "Mailbox/Semaphore",
+      "registers": []
+    },
+    {
+      "name": "bt_spi",
+      "type": "generic_mmio",
+      "base": "0x00D0082000",
+      "size": "0x00001000",
+      "cpu_target": "mcpu",
+      "_comment": "Boot SPI",
+      "registers": []
+    },
+    {
+      "name": "gp_spi",
+      "type": "generic_mmio",
+      "base": "0x00D0083000",
+      "size": "0x00001000",
+      "cpu_target": "mcpu",
+      "_comment": "General SPI",
+      "registers": []
+    },
+    {
+      "name": "i2c0",
+      "type": "generic_mmio",
+      "base": "0x00D008B000",
+      "size": "0x00001000",
+      "cpu_target": "mcpu",
+      "_comment": "I2C controller 0",
+      "registers": []
+    },
+    {
+      "name": "i2c1",
+      "type": "generic_mmio",
+      "base": "0x00D008C000",
+      "size": "0x00001000",
+      "cpu_target": "mcpu",
+      "_comment": "I2C controller 1",
+      "registers": []
+    },
+    {
+      "name": "i2c2",
+      "type": "generic_mmio",
+      "base": "0x00D008D000",
+      "size": "0x00001000",
+      "cpu_target": "mcpu",
+      "_comment": "I2C controller 2",
+      "registers": []
+    },
+    {
+      "name": "i2c3",
+      "type": "generic_mmio",
+      "base": "0x00D008E000",
+      "size": "0x00001000",
+      "cpu_target": "mcpu",
+      "_comment": "I2C controller 3",
+      "registers": []
+    },
+    {
+      "name": "i2c4",
+      "type": "generic_mmio",
+      "base": "0x00D008F000",
+      "size": "0x00001000",
+      "cpu_target": "mcpu",
+      "_comment": "I2C controller 4",
+      "registers": []
+    },
+    {
+      "name": "i2c5",
+      "type": "generic_mmio",
+      "base": "0x00D0090000",
+      "size": "0x00001000",
+      "cpu_target": "mcpu",
+      "_comment": "I2C controller 5",
+      "registers": []
+    },
+    {
+      "name": "trng",
+      "type": "generic_mmio",
+      "base": "0x00D0094000",
+      "size": "0x00001000",
+      "cpu_target": "mcpu",
+      "_comment": "True Random Number Generator",
+      "registers": []
+    },
+    {
+      "name": "psen_ctrl",
+      "type": "generic_mmio",
+      "base": "0x00D0098000",
+      "size": "0x00000800",
+      "cpu_target": "mcpu",
+      "_comment": "PSEN Controller",
+      "registers": []
+    },
+    {
+      "name": "efuse",
+      "type": "generic_mmio",
+      "base": "0x00D0098800",
+      "size": "0x00000800",
+      "cpu_target": "mcpu",
+      "_comment": "eFuse",
+      "registers": []
+    },
+    {
+      "name": "vsen0",
+      "type": "generic_mmio",
+      "base": "0x00D0099000",
+      "size": "0x00000800",
+      "cpu_target": "mcpu",
+      "_comment": "Voltage Sensor 0",
+      "registers": []
+    },
+    {
+      "name": "vsen1",
+      "type": "generic_mmio",
+      "base": "0x00D0099800",
+      "size": "0x00000800",
+      "cpu_target": "mcpu",
+      "_comment": "Voltage Sensor 1",
+      "registers": []
+    },
+    {
+      "name": "tsen",
+      "type": "generic_mmio",
+      "base": "0x00D009A000",
+      "size": "0x00001000",
+      "cpu_target": "mcpu",
+      "_comment": "Temperature Sensor",
+      "registers": []
+    },
+    {
+      "name": "usb0",
+      "type": "generic_mmio",
+      "base": "0x00D0100000",
+      "size": "0x00100000",
+      "cpu_target": "mcpu",
+      "_comment": "USB controller 0 (1MB)",
+      "registers": []
+    },
+    {
+      "name": "usb1",
+      "type": "generic_mmio",
+      "base": "0x00D0200000",
+      "size": "0x00100000",
+      "cpu_target": "mcpu",
+      "_comment": "USB controller 1 (1MB)",
+      "registers": []
+    },
+    {
+      "name": "l3csr0",
+      "type": "generic_mmio",
+      "base": "0x0720000000",
+      "size": "0x00002000",
+      "cpu_target": "acpu",
+      "_comment": "L3 Cache slice 0 CSR",
+      "registers": [
+        {
+          "name": "L3_CTRL_REG",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x80"
+        },
+        {
+          "name": "L3_STATUS_REG",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_MEM_CTRL_REG",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "?TBD"
+        },
+        {
+          "name": "L3_PMU_CTRL_REG",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT0_REG",
+          "offset": "0x1020",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT1_REG",
+          "offset": "0x1028",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT2_REG",
+          "offset": "0x1030",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT3_REG",
+          "offset": "0x1038",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG0",
+          "offset": "0x1040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG1",
+          "offset": "0x1048",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG2",
+          "offset": "0x1050",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG3",
+          "offset": "0x1058",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG4",
+          "offset": "0x1060",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG5",
+          "offset": "0x1068",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG6",
+          "offset": "0x1070",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG7",
+          "offset": "0x1078",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG8",
+          "offset": "0x1080",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG9",
+          "offset": "0x1088",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG10",
+          "offset": "0x1090",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG11",
+          "offset": "0x1098",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG12",
+          "offset": "0x10a0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG13",
+          "offset": "0x10a8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG14",
+          "offset": "0x10b0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG15",
+          "offset": "0x10b8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG16",
+          "offset": "0x10c0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG17",
+          "offset": "0x10c8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG18",
+          "offset": "0x10d0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG19",
+          "offset": "0x10d8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG20",
+          "offset": "0x10e0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG21",
+          "offset": "0x10e8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG22",
+          "offset": "0x10f0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG23",
+          "offset": "0x10f8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG24",
+          "offset": "0x1100",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG25",
+          "offset": "0x1108",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_RSV",
+          "offset": "0x1110",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG0",
+          "offset": "0x1118",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG1",
+          "offset": "0x1120",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG2",
+          "offset": "0x1128",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG3",
+          "offset": "0x1130",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG4",
+          "offset": "0x1138",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG5",
+          "offset": "0x1140",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG6",
+          "offset": "0x1148",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG7",
+          "offset": "0x1150",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG8",
+          "offset": "0x1158",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG9",
+          "offset": "0x1160",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG10",
+          "offset": "0x1168",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG11",
+          "offset": "0x1170",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG12",
+          "offset": "0x1178",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG13",
+          "offset": "0x1180",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG14",
+          "offset": "0x1188",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG15",
+          "offset": "0x1190",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG16",
+          "offset": "0x1198",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG17",
+          "offset": "0x11a0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG18",
+          "offset": "0x11a8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG19",
+          "offset": "0x11b0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG20",
+          "offset": "0x11b8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG21",
+          "offset": "0x11c0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG22",
+          "offset": "0x11c8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG23",
+          "offset": "0x11d0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG24",
+          "offset": "0x11d8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG25",
+          "offset": "0x11e0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_CORE_CTRL_REG",
+          "offset": "0x1228",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "vendor_imp_id",
+          "offset": "0x1800",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "bank_info",
+          "offset": "0x1808",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "valid_summary",
+          "offset": "0x1810",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x1818",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "control",
+          "offset": "0x1840",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "status",
+          "offset": "0x1848",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "addr_info",
+          "offset": "0x1850",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "info",
+          "offset": "0x1858",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "suppl_info",
+          "offset": "0x1860",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "timestamp",
+          "offset": "0x1868",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x1870",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "l3csr1",
+      "type": "generic_mmio",
+      "base": "0x0720002000",
+      "size": "0x00002000",
+      "cpu_target": "acpu",
+      "_comment": "L3 Cache slice 1 CSR",
+      "registers": [
+        {
+          "name": "L3_CTRL_REG",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x80"
+        },
+        {
+          "name": "L3_STATUS_REG",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_MEM_CTRL_REG",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "?TBD"
+        },
+        {
+          "name": "L3_PMU_CTRL_REG",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT0_REG",
+          "offset": "0x1020",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT1_REG",
+          "offset": "0x1028",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT2_REG",
+          "offset": "0x1030",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT3_REG",
+          "offset": "0x1038",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG0",
+          "offset": "0x1040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG1",
+          "offset": "0x1048",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG2",
+          "offset": "0x1050",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG3",
+          "offset": "0x1058",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG4",
+          "offset": "0x1060",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG5",
+          "offset": "0x1068",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG6",
+          "offset": "0x1070",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG7",
+          "offset": "0x1078",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG8",
+          "offset": "0x1080",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG9",
+          "offset": "0x1088",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG10",
+          "offset": "0x1090",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG11",
+          "offset": "0x1098",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG12",
+          "offset": "0x10a0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG13",
+          "offset": "0x10a8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG14",
+          "offset": "0x10b0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG15",
+          "offset": "0x10b8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG16",
+          "offset": "0x10c0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG17",
+          "offset": "0x10c8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG18",
+          "offset": "0x10d0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG19",
+          "offset": "0x10d8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG20",
+          "offset": "0x10e0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG21",
+          "offset": "0x10e8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG22",
+          "offset": "0x10f0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG23",
+          "offset": "0x10f8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG24",
+          "offset": "0x1100",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG25",
+          "offset": "0x1108",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_RSV",
+          "offset": "0x1110",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG0",
+          "offset": "0x1118",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG1",
+          "offset": "0x1120",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG2",
+          "offset": "0x1128",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG3",
+          "offset": "0x1130",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG4",
+          "offset": "0x1138",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG5",
+          "offset": "0x1140",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG6",
+          "offset": "0x1148",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG7",
+          "offset": "0x1150",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG8",
+          "offset": "0x1158",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG9",
+          "offset": "0x1160",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG10",
+          "offset": "0x1168",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG11",
+          "offset": "0x1170",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG12",
+          "offset": "0x1178",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG13",
+          "offset": "0x1180",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG14",
+          "offset": "0x1188",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG15",
+          "offset": "0x1190",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG16",
+          "offset": "0x1198",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG17",
+          "offset": "0x11a0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG18",
+          "offset": "0x11a8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG19",
+          "offset": "0x11b0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG20",
+          "offset": "0x11b8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG21",
+          "offset": "0x11c0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG22",
+          "offset": "0x11c8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG23",
+          "offset": "0x11d0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG24",
+          "offset": "0x11d8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG25",
+          "offset": "0x11e0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_CORE_CTRL_REG",
+          "offset": "0x1228",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "vendor_imp_id",
+          "offset": "0x1800",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "bank_info",
+          "offset": "0x1808",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "valid_summary",
+          "offset": "0x1810",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x1818",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "control",
+          "offset": "0x1840",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "status",
+          "offset": "0x1848",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "addr_info",
+          "offset": "0x1850",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "info",
+          "offset": "0x1858",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "suppl_info",
+          "offset": "0x1860",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "timestamp",
+          "offset": "0x1868",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x1870",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "l3csr2",
+      "type": "generic_mmio",
+      "base": "0x0720004000",
+      "size": "0x00002000",
+      "cpu_target": "acpu",
+      "_comment": "L3 Cache slice 2 CSR",
+      "registers": [
+        {
+          "name": "L3_CTRL_REG",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x80"
+        },
+        {
+          "name": "L3_STATUS_REG",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_MEM_CTRL_REG",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "?TBD"
+        },
+        {
+          "name": "L3_PMU_CTRL_REG",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT0_REG",
+          "offset": "0x1020",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT1_REG",
+          "offset": "0x1028",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT2_REG",
+          "offset": "0x1030",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT3_REG",
+          "offset": "0x1038",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG0",
+          "offset": "0x1040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG1",
+          "offset": "0x1048",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG2",
+          "offset": "0x1050",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG3",
+          "offset": "0x1058",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG4",
+          "offset": "0x1060",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG5",
+          "offset": "0x1068",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG6",
+          "offset": "0x1070",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG7",
+          "offset": "0x1078",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG8",
+          "offset": "0x1080",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG9",
+          "offset": "0x1088",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG10",
+          "offset": "0x1090",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG11",
+          "offset": "0x1098",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG12",
+          "offset": "0x10a0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG13",
+          "offset": "0x10a8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG14",
+          "offset": "0x10b0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG15",
+          "offset": "0x10b8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG16",
+          "offset": "0x10c0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG17",
+          "offset": "0x10c8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG18",
+          "offset": "0x10d0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG19",
+          "offset": "0x10d8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG20",
+          "offset": "0x10e0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG21",
+          "offset": "0x10e8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG22",
+          "offset": "0x10f0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG23",
+          "offset": "0x10f8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG24",
+          "offset": "0x1100",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG25",
+          "offset": "0x1108",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_RSV",
+          "offset": "0x1110",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG0",
+          "offset": "0x1118",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG1",
+          "offset": "0x1120",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG2",
+          "offset": "0x1128",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG3",
+          "offset": "0x1130",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG4",
+          "offset": "0x1138",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG5",
+          "offset": "0x1140",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG6",
+          "offset": "0x1148",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG7",
+          "offset": "0x1150",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG8",
+          "offset": "0x1158",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG9",
+          "offset": "0x1160",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG10",
+          "offset": "0x1168",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG11",
+          "offset": "0x1170",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG12",
+          "offset": "0x1178",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG13",
+          "offset": "0x1180",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG14",
+          "offset": "0x1188",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG15",
+          "offset": "0x1190",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG16",
+          "offset": "0x1198",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG17",
+          "offset": "0x11a0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG18",
+          "offset": "0x11a8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG19",
+          "offset": "0x11b0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG20",
+          "offset": "0x11b8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG21",
+          "offset": "0x11c0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG22",
+          "offset": "0x11c8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG23",
+          "offset": "0x11d0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG24",
+          "offset": "0x11d8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG25",
+          "offset": "0x11e0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_CORE_CTRL_REG",
+          "offset": "0x1228",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "vendor_imp_id",
+          "offset": "0x1800",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "bank_info",
+          "offset": "0x1808",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "valid_summary",
+          "offset": "0x1810",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x1818",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "control",
+          "offset": "0x1840",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "status",
+          "offset": "0x1848",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "addr_info",
+          "offset": "0x1850",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "info",
+          "offset": "0x1858",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "suppl_info",
+          "offset": "0x1860",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "timestamp",
+          "offset": "0x1868",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x1870",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "l3csr3",
+      "type": "generic_mmio",
+      "base": "0x0720006000",
+      "size": "0x00002000",
+      "cpu_target": "acpu",
+      "_comment": "L3 Cache slice 3 CSR",
+      "registers": [
+        {
+          "name": "L3_CTRL_REG",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x80"
+        },
+        {
+          "name": "L3_STATUS_REG",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_MEM_CTRL_REG",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "?TBD"
+        },
+        {
+          "name": "L3_PMU_CTRL_REG",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT0_REG",
+          "offset": "0x1020",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT1_REG",
+          "offset": "0x1028",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT2_REG",
+          "offset": "0x1030",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT3_REG",
+          "offset": "0x1038",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG0",
+          "offset": "0x1040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG1",
+          "offset": "0x1048",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG2",
+          "offset": "0x1050",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG3",
+          "offset": "0x1058",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG4",
+          "offset": "0x1060",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG5",
+          "offset": "0x1068",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG6",
+          "offset": "0x1070",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG7",
+          "offset": "0x1078",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG8",
+          "offset": "0x1080",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG9",
+          "offset": "0x1088",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG10",
+          "offset": "0x1090",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG11",
+          "offset": "0x1098",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG12",
+          "offset": "0x10a0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG13",
+          "offset": "0x10a8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG14",
+          "offset": "0x10b0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG15",
+          "offset": "0x10b8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG16",
+          "offset": "0x10c0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG17",
+          "offset": "0x10c8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG18",
+          "offset": "0x10d0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG19",
+          "offset": "0x10d8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG20",
+          "offset": "0x10e0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG21",
+          "offset": "0x10e8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG22",
+          "offset": "0x10f0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG23",
+          "offset": "0x10f8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG24",
+          "offset": "0x1100",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG25",
+          "offset": "0x1108",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_RSV",
+          "offset": "0x1110",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG0",
+          "offset": "0x1118",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG1",
+          "offset": "0x1120",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG2",
+          "offset": "0x1128",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG3",
+          "offset": "0x1130",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG4",
+          "offset": "0x1138",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG5",
+          "offset": "0x1140",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG6",
+          "offset": "0x1148",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG7",
+          "offset": "0x1150",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG8",
+          "offset": "0x1158",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG9",
+          "offset": "0x1160",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG10",
+          "offset": "0x1168",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG11",
+          "offset": "0x1170",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG12",
+          "offset": "0x1178",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG13",
+          "offset": "0x1180",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG14",
+          "offset": "0x1188",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG15",
+          "offset": "0x1190",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG16",
+          "offset": "0x1198",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG17",
+          "offset": "0x11a0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG18",
+          "offset": "0x11a8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG19",
+          "offset": "0x11b0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG20",
+          "offset": "0x11b8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG21",
+          "offset": "0x11c0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG22",
+          "offset": "0x11c8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG23",
+          "offset": "0x11d0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG24",
+          "offset": "0x11d8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG25",
+          "offset": "0x11e0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_CORE_CTRL_REG",
+          "offset": "0x1228",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "vendor_imp_id",
+          "offset": "0x1800",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "bank_info",
+          "offset": "0x1808",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "valid_summary",
+          "offset": "0x1810",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x1818",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "control",
+          "offset": "0x1840",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "status",
+          "offset": "0x1848",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "addr_info",
+          "offset": "0x1850",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "info",
+          "offset": "0x1858",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "suppl_info",
+          "offset": "0x1860",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "timestamp",
+          "offset": "0x1868",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x1870",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "l3csr4",
+      "type": "generic_mmio",
+      "base": "0x0720008000",
+      "size": "0x00002000",
+      "cpu_target": "acpu",
+      "_comment": "L3 Cache slice 4 CSR",
+      "registers": [
+        {
+          "name": "L3_CTRL_REG",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x80"
+        },
+        {
+          "name": "L3_STATUS_REG",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_MEM_CTRL_REG",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "?TBD"
+        },
+        {
+          "name": "L3_PMU_CTRL_REG",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT0_REG",
+          "offset": "0x1020",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT1_REG",
+          "offset": "0x1028",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT2_REG",
+          "offset": "0x1030",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT3_REG",
+          "offset": "0x1038",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG0",
+          "offset": "0x1040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG1",
+          "offset": "0x1048",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG2",
+          "offset": "0x1050",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG3",
+          "offset": "0x1058",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG4",
+          "offset": "0x1060",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG5",
+          "offset": "0x1068",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG6",
+          "offset": "0x1070",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG7",
+          "offset": "0x1078",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG8",
+          "offset": "0x1080",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG9",
+          "offset": "0x1088",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG10",
+          "offset": "0x1090",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG11",
+          "offset": "0x1098",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG12",
+          "offset": "0x10a0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG13",
+          "offset": "0x10a8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG14",
+          "offset": "0x10b0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG15",
+          "offset": "0x10b8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG16",
+          "offset": "0x10c0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG17",
+          "offset": "0x10c8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG18",
+          "offset": "0x10d0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG19",
+          "offset": "0x10d8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG20",
+          "offset": "0x10e0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG21",
+          "offset": "0x10e8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG22",
+          "offset": "0x10f0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG23",
+          "offset": "0x10f8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG24",
+          "offset": "0x1100",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG25",
+          "offset": "0x1108",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_RSV",
+          "offset": "0x1110",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG0",
+          "offset": "0x1118",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG1",
+          "offset": "0x1120",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG2",
+          "offset": "0x1128",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG3",
+          "offset": "0x1130",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG4",
+          "offset": "0x1138",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG5",
+          "offset": "0x1140",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG6",
+          "offset": "0x1148",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG7",
+          "offset": "0x1150",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG8",
+          "offset": "0x1158",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG9",
+          "offset": "0x1160",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG10",
+          "offset": "0x1168",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG11",
+          "offset": "0x1170",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG12",
+          "offset": "0x1178",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG13",
+          "offset": "0x1180",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG14",
+          "offset": "0x1188",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG15",
+          "offset": "0x1190",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG16",
+          "offset": "0x1198",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG17",
+          "offset": "0x11a0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG18",
+          "offset": "0x11a8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG19",
+          "offset": "0x11b0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG20",
+          "offset": "0x11b8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG21",
+          "offset": "0x11c0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG22",
+          "offset": "0x11c8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG23",
+          "offset": "0x11d0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG24",
+          "offset": "0x11d8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG25",
+          "offset": "0x11e0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_CORE_CTRL_REG",
+          "offset": "0x1228",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "vendor_imp_id",
+          "offset": "0x1800",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "bank_info",
+          "offset": "0x1808",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "valid_summary",
+          "offset": "0x1810",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x1818",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "control",
+          "offset": "0x1840",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "status",
+          "offset": "0x1848",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "addr_info",
+          "offset": "0x1850",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "info",
+          "offset": "0x1858",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "suppl_info",
+          "offset": "0x1860",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "timestamp",
+          "offset": "0x1868",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x1870",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "l3csr5",
+      "type": "generic_mmio",
+      "base": "0x072000A000",
+      "size": "0x00002000",
+      "cpu_target": "acpu",
+      "_comment": "L3 Cache slice 5 CSR",
+      "registers": [
+        {
+          "name": "L3_CTRL_REG",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x80"
+        },
+        {
+          "name": "L3_STATUS_REG",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_MEM_CTRL_REG",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "?TBD"
+        },
+        {
+          "name": "L3_PMU_CTRL_REG",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT0_REG",
+          "offset": "0x1020",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT1_REG",
+          "offset": "0x1028",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT2_REG",
+          "offset": "0x1030",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT3_REG",
+          "offset": "0x1038",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG0",
+          "offset": "0x1040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG1",
+          "offset": "0x1048",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG2",
+          "offset": "0x1050",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG3",
+          "offset": "0x1058",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG4",
+          "offset": "0x1060",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG5",
+          "offset": "0x1068",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG6",
+          "offset": "0x1070",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG7",
+          "offset": "0x1078",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG8",
+          "offset": "0x1080",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG9",
+          "offset": "0x1088",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG10",
+          "offset": "0x1090",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG11",
+          "offset": "0x1098",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG12",
+          "offset": "0x10a0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG13",
+          "offset": "0x10a8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG14",
+          "offset": "0x10b0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG15",
+          "offset": "0x10b8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG16",
+          "offset": "0x10c0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG17",
+          "offset": "0x10c8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG18",
+          "offset": "0x10d0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG19",
+          "offset": "0x10d8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG20",
+          "offset": "0x10e0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG21",
+          "offset": "0x10e8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG22",
+          "offset": "0x10f0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG23",
+          "offset": "0x10f8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG24",
+          "offset": "0x1100",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG25",
+          "offset": "0x1108",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_RSV",
+          "offset": "0x1110",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG0",
+          "offset": "0x1118",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG1",
+          "offset": "0x1120",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG2",
+          "offset": "0x1128",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG3",
+          "offset": "0x1130",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG4",
+          "offset": "0x1138",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG5",
+          "offset": "0x1140",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG6",
+          "offset": "0x1148",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG7",
+          "offset": "0x1150",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG8",
+          "offset": "0x1158",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG9",
+          "offset": "0x1160",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG10",
+          "offset": "0x1168",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG11",
+          "offset": "0x1170",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG12",
+          "offset": "0x1178",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG13",
+          "offset": "0x1180",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG14",
+          "offset": "0x1188",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG15",
+          "offset": "0x1190",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG16",
+          "offset": "0x1198",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG17",
+          "offset": "0x11a0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG18",
+          "offset": "0x11a8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG19",
+          "offset": "0x11b0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG20",
+          "offset": "0x11b8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG21",
+          "offset": "0x11c0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG22",
+          "offset": "0x11c8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG23",
+          "offset": "0x11d0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG24",
+          "offset": "0x11d8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG25",
+          "offset": "0x11e0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_CORE_CTRL_REG",
+          "offset": "0x1228",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "vendor_imp_id",
+          "offset": "0x1800",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "bank_info",
+          "offset": "0x1808",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "valid_summary",
+          "offset": "0x1810",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x1818",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "control",
+          "offset": "0x1840",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "status",
+          "offset": "0x1848",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "addr_info",
+          "offset": "0x1850",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "info",
+          "offset": "0x1858",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "suppl_info",
+          "offset": "0x1860",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "timestamp",
+          "offset": "0x1868",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x1870",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "l3csr6",
+      "type": "generic_mmio",
+      "base": "0x072000C000",
+      "size": "0x00002000",
+      "cpu_target": "acpu",
+      "_comment": "L3 Cache slice 6 CSR",
+      "registers": [
+        {
+          "name": "L3_CTRL_REG",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x80"
+        },
+        {
+          "name": "L3_STATUS_REG",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_MEM_CTRL_REG",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "?TBD"
+        },
+        {
+          "name": "L3_PMU_CTRL_REG",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT0_REG",
+          "offset": "0x1020",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT1_REG",
+          "offset": "0x1028",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT2_REG",
+          "offset": "0x1030",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT3_REG",
+          "offset": "0x1038",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG0",
+          "offset": "0x1040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG1",
+          "offset": "0x1048",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG2",
+          "offset": "0x1050",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG3",
+          "offset": "0x1058",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG4",
+          "offset": "0x1060",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG5",
+          "offset": "0x1068",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG6",
+          "offset": "0x1070",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG7",
+          "offset": "0x1078",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG8",
+          "offset": "0x1080",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG9",
+          "offset": "0x1088",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG10",
+          "offset": "0x1090",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG11",
+          "offset": "0x1098",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG12",
+          "offset": "0x10a0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG13",
+          "offset": "0x10a8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG14",
+          "offset": "0x10b0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG15",
+          "offset": "0x10b8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG16",
+          "offset": "0x10c0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG17",
+          "offset": "0x10c8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG18",
+          "offset": "0x10d0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG19",
+          "offset": "0x10d8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG20",
+          "offset": "0x10e0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG21",
+          "offset": "0x10e8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG22",
+          "offset": "0x10f0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG23",
+          "offset": "0x10f8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG24",
+          "offset": "0x1100",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG25",
+          "offset": "0x1108",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_RSV",
+          "offset": "0x1110",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG0",
+          "offset": "0x1118",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG1",
+          "offset": "0x1120",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG2",
+          "offset": "0x1128",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG3",
+          "offset": "0x1130",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG4",
+          "offset": "0x1138",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG5",
+          "offset": "0x1140",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG6",
+          "offset": "0x1148",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG7",
+          "offset": "0x1150",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG8",
+          "offset": "0x1158",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG9",
+          "offset": "0x1160",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG10",
+          "offset": "0x1168",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG11",
+          "offset": "0x1170",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG12",
+          "offset": "0x1178",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG13",
+          "offset": "0x1180",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG14",
+          "offset": "0x1188",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG15",
+          "offset": "0x1190",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG16",
+          "offset": "0x1198",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG17",
+          "offset": "0x11a0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG18",
+          "offset": "0x11a8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG19",
+          "offset": "0x11b0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG20",
+          "offset": "0x11b8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG21",
+          "offset": "0x11c0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG22",
+          "offset": "0x11c8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG23",
+          "offset": "0x11d0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG24",
+          "offset": "0x11d8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG25",
+          "offset": "0x11e0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_CORE_CTRL_REG",
+          "offset": "0x1228",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "vendor_imp_id",
+          "offset": "0x1800",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "bank_info",
+          "offset": "0x1808",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "valid_summary",
+          "offset": "0x1810",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x1818",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "control",
+          "offset": "0x1840",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "status",
+          "offset": "0x1848",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "addr_info",
+          "offset": "0x1850",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "info",
+          "offset": "0x1858",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "suppl_info",
+          "offset": "0x1860",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "timestamp",
+          "offset": "0x1868",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x1870",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "l3csr7",
+      "type": "generic_mmio",
+      "base": "0x072000E000",
+      "size": "0x00002000",
+      "cpu_target": "acpu",
+      "_comment": "L3 Cache slice 7 CSR",
+      "registers": [
+        {
+          "name": "L3_CTRL_REG",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x80"
+        },
+        {
+          "name": "L3_STATUS_REG",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_MEM_CTRL_REG",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "?TBD"
+        },
+        {
+          "name": "L3_PMU_CTRL_REG",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT0_REG",
+          "offset": "0x1020",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT1_REG",
+          "offset": "0x1028",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT2_REG",
+          "offset": "0x1030",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_PMU_EVENT3_REG",
+          "offset": "0x1038",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG0",
+          "offset": "0x1040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG1",
+          "offset": "0x1048",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG2",
+          "offset": "0x1050",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG3",
+          "offset": "0x1058",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG4",
+          "offset": "0x1060",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG5",
+          "offset": "0x1068",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG6",
+          "offset": "0x1070",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG7",
+          "offset": "0x1078",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG8",
+          "offset": "0x1080",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG9",
+          "offset": "0x1088",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG10",
+          "offset": "0x1090",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG11",
+          "offset": "0x1098",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG12",
+          "offset": "0x10a0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG13",
+          "offset": "0x10a8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG14",
+          "offset": "0x10b0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG15",
+          "offset": "0x10b8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG16",
+          "offset": "0x10c0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG17",
+          "offset": "0x10c8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG18",
+          "offset": "0x10d0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG19",
+          "offset": "0x10d8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG20",
+          "offset": "0x10e0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG21",
+          "offset": "0x10e8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG22",
+          "offset": "0x10f0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG23",
+          "offset": "0x10f8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG24",
+          "offset": "0x1100",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_CFG25",
+          "offset": "0x1108",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_SF_DRRIP_RSV",
+          "offset": "0x1110",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG0",
+          "offset": "0x1118",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG1",
+          "offset": "0x1120",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG2",
+          "offset": "0x1128",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG3",
+          "offset": "0x1130",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG4",
+          "offset": "0x1138",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG5",
+          "offset": "0x1140",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG6",
+          "offset": "0x1148",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG7",
+          "offset": "0x1150",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG8",
+          "offset": "0x1158",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG9",
+          "offset": "0x1160",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG10",
+          "offset": "0x1168",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG11",
+          "offset": "0x1170",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG12",
+          "offset": "0x1178",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG13",
+          "offset": "0x1180",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG14",
+          "offset": "0x1188",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG15",
+          "offset": "0x1190",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG16",
+          "offset": "0x1198",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG17",
+          "offset": "0x11a0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG18",
+          "offset": "0x11a8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG19",
+          "offset": "0x11b0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG20",
+          "offset": "0x11b8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG21",
+          "offset": "0x11c0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG22",
+          "offset": "0x11c8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG23",
+          "offset": "0x11d0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG24",
+          "offset": "0x11d8",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3TAG_DRRIP_CFG25",
+          "offset": "0x11e0",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "L3_CORE_CTRL_REG",
+          "offset": "0x1228",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "vendor_imp_id",
+          "offset": "0x1800",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "bank_info",
+          "offset": "0x1808",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "valid_summary",
+          "offset": "0x1810",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x1818",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "control",
+          "offset": "0x1840",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "status",
+          "offset": "0x1848",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "addr_info",
+          "offset": "0x1850",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "info",
+          "offset": "0x1858",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "suppl_info",
+          "offset": "0x1860",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "timestamp",
+          "offset": "0x1868",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x1870",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "cluster0_csr",
+      "type": "generic_mmio",
+      "base": "0x0710000000",
+      "size": "0x01000000",
+      "cpu_target": "acpu",
+      "_comment": "Cluster 0 CSR (16MB)",
+      "registers": [
+        {
+          "name": "core0 config CTRL",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core1 config  CTRL",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core2 config  CTRL",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core3 config  CTRL",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core0 vec config CTRL",
+          "offset": "0x1020",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core1 vec config  CTRL",
+          "offset": "0x1028",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core2 vec config  CTRL",
+          "offset": "0x1030",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core3 vec config  CTRL",
+          "offset": "0x1038",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cluster config CTRL",
+          "offset": "0x1040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cluster RAS\nvendor_n_imp_id",
+          "offset": "0x2000",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "bank_info",
+          "offset": "0x2008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "valid_summary",
+          "offset": "0x2010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "[0]: 0x1"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x2018",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x2130",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_vendor_n_imp_id",
+          "offset": "0x2000",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_bank_info",
+          "offset": "0x2008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_valid_summary",
+          "offset": "0x2010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x1"
+        },
+        {
+          "name": "ras_control_i0",
+          "offset": "0x2040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_status_i0",
+          "offset": "0x2048",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_addr_info_i0",
+          "offset": "0x2050",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_info_i0",
+          "offset": "0x2058",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_suppl_info_i0",
+          "offset": "0x2060",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_counter_i0",
+          "offset": "0x2068",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_timestamp_i0",
+          "offset": "0x2070",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "cluster1_csr",
+      "type": "generic_mmio",
+      "base": "0x0711000000",
+      "size": "0x01000000",
+      "cpu_target": "acpu",
+      "_comment": "Cluster 1 CSR (16MB)",
+      "registers": [
+        {
+          "name": "core0 config CTRL",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core1 config  CTRL",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core2 config  CTRL",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core3 config  CTRL",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core0 vec config CTRL",
+          "offset": "0x1020",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core1 vec config  CTRL",
+          "offset": "0x1028",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core2 vec config  CTRL",
+          "offset": "0x1030",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core3 vec config  CTRL",
+          "offset": "0x1038",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cluster config CTRL",
+          "offset": "0x1040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cluster RAS\nvendor_n_imp_id",
+          "offset": "0x2000",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "bank_info",
+          "offset": "0x2008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "valid_summary",
+          "offset": "0x2010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "[0]: 0x1"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x2018",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x2130",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_vendor_n_imp_id",
+          "offset": "0x2000",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_bank_info",
+          "offset": "0x2008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_valid_summary",
+          "offset": "0x2010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x1"
+        },
+        {
+          "name": "ras_control_i0",
+          "offset": "0x2040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_status_i0",
+          "offset": "0x2048",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_addr_info_i0",
+          "offset": "0x2050",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_info_i0",
+          "offset": "0x2058",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_suppl_info_i0",
+          "offset": "0x2060",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_counter_i0",
+          "offset": "0x2068",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_timestamp_i0",
+          "offset": "0x2070",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "cluster2_csr",
+      "type": "generic_mmio",
+      "base": "0x0712000000",
+      "size": "0x01000000",
+      "cpu_target": "acpu",
+      "_comment": "Cluster 2 CSR (16MB)",
+      "registers": [
+        {
+          "name": "core0 config CTRL",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core1 config  CTRL",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core2 config  CTRL",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core3 config  CTRL",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core0 vec config CTRL",
+          "offset": "0x1020",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core1 vec config  CTRL",
+          "offset": "0x1028",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core2 vec config  CTRL",
+          "offset": "0x1030",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core3 vec config  CTRL",
+          "offset": "0x1038",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cluster config CTRL",
+          "offset": "0x1040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cluster RAS\nvendor_n_imp_id",
+          "offset": "0x2000",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "bank_info",
+          "offset": "0x2008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "valid_summary",
+          "offset": "0x2010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "[0]: 0x1"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x2018",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x2130",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_vendor_n_imp_id",
+          "offset": "0x2000",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_bank_info",
+          "offset": "0x2008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_valid_summary",
+          "offset": "0x2010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x1"
+        },
+        {
+          "name": "ras_control_i0",
+          "offset": "0x2040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_status_i0",
+          "offset": "0x2048",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_addr_info_i0",
+          "offset": "0x2050",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_info_i0",
+          "offset": "0x2058",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_suppl_info_i0",
+          "offset": "0x2060",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_counter_i0",
+          "offset": "0x2068",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_timestamp_i0",
+          "offset": "0x2070",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "cluster3_csr",
+      "type": "generic_mmio",
+      "base": "0x0713000000",
+      "size": "0x01000000",
+      "cpu_target": "acpu",
+      "_comment": "Cluster 3 CSR (16MB)",
+      "registers": [
+        {
+          "name": "core0 config CTRL",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core1 config  CTRL",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core2 config  CTRL",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core3 config  CTRL",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core0 vec config CTRL",
+          "offset": "0x1020",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core1 vec config  CTRL",
+          "offset": "0x1028",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core2 vec config  CTRL",
+          "offset": "0x1030",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core3 vec config  CTRL",
+          "offset": "0x1038",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cluster config CTRL",
+          "offset": "0x1040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cluster RAS\nvendor_n_imp_id",
+          "offset": "0x2000",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "bank_info",
+          "offset": "0x2008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "valid_summary",
+          "offset": "0x2010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "[0]: 0x1"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x2018",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x2130",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_vendor_n_imp_id",
+          "offset": "0x2000",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_bank_info",
+          "offset": "0x2008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_valid_summary",
+          "offset": "0x2010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x1"
+        },
+        {
+          "name": "ras_control_i0",
+          "offset": "0x2040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_status_i0",
+          "offset": "0x2048",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_addr_info_i0",
+          "offset": "0x2050",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_info_i0",
+          "offset": "0x2058",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_suppl_info_i0",
+          "offset": "0x2060",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_counter_i0",
+          "offset": "0x2068",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_timestamp_i0",
+          "offset": "0x2070",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "cluster4_csr",
+      "type": "generic_mmio",
+      "base": "0x0714000000",
+      "size": "0x01000000",
+      "cpu_target": "acpu",
+      "_comment": "Cluster 4 CSR (16MB)",
+      "registers": [
+        {
+          "name": "core0 config CTRL",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core1 config  CTRL",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core2 config  CTRL",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core3 config  CTRL",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core0 vec config CTRL",
+          "offset": "0x1020",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core1 vec config  CTRL",
+          "offset": "0x1028",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core2 vec config  CTRL",
+          "offset": "0x1030",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core3 vec config  CTRL",
+          "offset": "0x1038",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cluster config CTRL",
+          "offset": "0x1040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cluster RAS\nvendor_n_imp_id",
+          "offset": "0x2000",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "bank_info",
+          "offset": "0x2008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "valid_summary",
+          "offset": "0x2010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "[0]: 0x1"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x2018",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x2130",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_vendor_n_imp_id",
+          "offset": "0x2000",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_bank_info",
+          "offset": "0x2008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_valid_summary",
+          "offset": "0x2010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x1"
+        },
+        {
+          "name": "ras_control_i0",
+          "offset": "0x2040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_status_i0",
+          "offset": "0x2048",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_addr_info_i0",
+          "offset": "0x2050",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_info_i0",
+          "offset": "0x2058",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_suppl_info_i0",
+          "offset": "0x2060",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_counter_i0",
+          "offset": "0x2068",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_timestamp_i0",
+          "offset": "0x2070",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "cluster5_csr",
+      "type": "generic_mmio",
+      "base": "0x0715000000",
+      "size": "0x01000000",
+      "cpu_target": "acpu",
+      "_comment": "Cluster 5 CSR (16MB)",
+      "registers": [
+        {
+          "name": "core0 config CTRL",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core1 config  CTRL",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core2 config  CTRL",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core3 config  CTRL",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core0 vec config CTRL",
+          "offset": "0x1020",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core1 vec config  CTRL",
+          "offset": "0x1028",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core2 vec config  CTRL",
+          "offset": "0x1030",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core3 vec config  CTRL",
+          "offset": "0x1038",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cluster config CTRL",
+          "offset": "0x1040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cluster RAS\nvendor_n_imp_id",
+          "offset": "0x2000",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "bank_info",
+          "offset": "0x2008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "valid_summary",
+          "offset": "0x2010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "[0]: 0x1"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x2018",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x2130",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_vendor_n_imp_id",
+          "offset": "0x2000",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_bank_info",
+          "offset": "0x2008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_valid_summary",
+          "offset": "0x2010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x1"
+        },
+        {
+          "name": "ras_control_i0",
+          "offset": "0x2040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_status_i0",
+          "offset": "0x2048",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_addr_info_i0",
+          "offset": "0x2050",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_info_i0",
+          "offset": "0x2058",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_suppl_info_i0",
+          "offset": "0x2060",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_counter_i0",
+          "offset": "0x2068",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_timestamp_i0",
+          "offset": "0x2070",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "cluster6_csr",
+      "type": "generic_mmio",
+      "base": "0x0716000000",
+      "size": "0x01000000",
+      "cpu_target": "acpu",
+      "_comment": "Cluster 6 CSR (16MB)",
+      "registers": [
+        {
+          "name": "core0 config CTRL",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core1 config  CTRL",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core2 config  CTRL",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core3 config  CTRL",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core0 vec config CTRL",
+          "offset": "0x1020",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core1 vec config  CTRL",
+          "offset": "0x1028",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core2 vec config  CTRL",
+          "offset": "0x1030",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core3 vec config  CTRL",
+          "offset": "0x1038",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cluster config CTRL",
+          "offset": "0x1040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cluster RAS\nvendor_n_imp_id",
+          "offset": "0x2000",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "bank_info",
+          "offset": "0x2008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "valid_summary",
+          "offset": "0x2010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "[0]: 0x1"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x2018",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x2130",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_vendor_n_imp_id",
+          "offset": "0x2000",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_bank_info",
+          "offset": "0x2008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_valid_summary",
+          "offset": "0x2010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x1"
+        },
+        {
+          "name": "ras_control_i0",
+          "offset": "0x2040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_status_i0",
+          "offset": "0x2048",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_addr_info_i0",
+          "offset": "0x2050",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_info_i0",
+          "offset": "0x2058",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_suppl_info_i0",
+          "offset": "0x2060",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_counter_i0",
+          "offset": "0x2068",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_timestamp_i0",
+          "offset": "0x2070",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "cluster7_csr",
+      "type": "generic_mmio",
+      "base": "0x0717000000",
+      "size": "0x01000000",
+      "cpu_target": "acpu",
+      "_comment": "Cluster 7 CSR (16MB)",
+      "registers": [
+        {
+          "name": "core0 config CTRL",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core1 config  CTRL",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core2 config  CTRL",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core3 config  CTRL",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core0 vec config CTRL",
+          "offset": "0x1020",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core1 vec config  CTRL",
+          "offset": "0x1028",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core2 vec config  CTRL",
+          "offset": "0x1030",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "core3 vec config  CTRL",
+          "offset": "0x1038",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cluster config CTRL",
+          "offset": "0x1040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cluster RAS\nvendor_n_imp_id",
+          "offset": "0x2000",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "bank_info",
+          "offset": "0x2008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "valid_summary",
+          "offset": "0x2010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "[0]: 0x1"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x2018",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "reserve",
+          "offset": "0x2130",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_vendor_n_imp_id",
+          "offset": "0x2000",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_bank_info",
+          "offset": "0x2008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_valid_summary",
+          "offset": "0x2010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x1"
+        },
+        {
+          "name": "ras_control_i0",
+          "offset": "0x2040",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_status_i0",
+          "offset": "0x2048",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_addr_info_i0",
+          "offset": "0x2050",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_info_i0",
+          "offset": "0x2058",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_suppl_info_i0",
+          "offset": "0x2060",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_counter_i0",
+          "offset": "0x2068",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ras_timestamp_i0",
+          "offset": "0x2070",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "ddr0_csr",
+      "type": "generic_mmio",
+      "base": "0x0120000000",
+      "size": "0x04000000",
+      "cpu_target": "both",
+      "_comment": "DDR0 controller CSR (64MB)",
+      "registers": []
+    },
+    {
+      "name": "ddr1_csr",
+      "type": "generic_mmio",
+      "base": "0x0124000000",
+      "size": "0x04000000",
+      "cpu_target": "both",
+      "_comment": "DDR1 controller CSR (64MB)",
+      "registers": []
+    },
+    {
+      "name": "ddr2_csr",
+      "type": "generic_mmio",
+      "base": "0x0128000000",
+      "size": "0x04000000",
+      "cpu_target": "both",
+      "_comment": "DDR2 controller CSR (64MB)",
+      "registers": []
+    },
+    {
+      "name": "ddr3_csr",
+      "type": "generic_mmio",
+      "base": "0x012C000000",
+      "size": "0x04000000",
+      "cpu_target": "both",
+      "_comment": "DDR3 controller CSR (64MB)",
+      "registers": []
+    },
+    {
+      "name": "ddr4_csr",
+      "type": "generic_mmio",
+      "base": "0x0130000000",
+      "size": "0x04000000",
+      "cpu_target": "both",
+      "_comment": "DDR4 controller CSR (64MB)",
+      "registers": []
+    },
+    {
+      "name": "ddr5_csr",
+      "type": "generic_mmio",
+      "base": "0x0134000000",
+      "size": "0x04000000",
+      "cpu_target": "both",
+      "_comment": "DDR5 controller CSR (64MB)",
+      "registers": []
+    },
+    {
+      "name": "ddr6_csr",
+      "type": "generic_mmio",
+      "base": "0x0138000000",
+      "size": "0x04000000",
+      "cpu_target": "both",
+      "_comment": "DDR6 controller CSR (64MB)",
+      "registers": []
+    },
+    {
+      "name": "ddr7_csr",
+      "type": "generic_mmio",
+      "base": "0x013C000000",
+      "size": "0x04000000",
+      "cpu_target": "both",
+      "_comment": "DDR7 controller CSR (64MB)",
+      "registers": []
+    },
+    {
+      "name": "axi_pcie0",
+      "type": "generic_mmio",
+      "base": "0x700000000",
+      "size": "0x00002000",
+      "cpu_target": "both",
+      "_comment": "AXI Bridge PCIe0 CSR (8KB) with IOMMU",
+      "registers": [
+        {
+          "name": "CTRL",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "STATUS",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "AXI_ERROR_INFO",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "AXI_PMU_CTRL_REG",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "capabilities",
+          "offset": "0x1800",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "fctl",
+          "offset": "0x1808",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ddtp",
+          "offset": "0x1810",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cqb",
+          "offset": "0x1818",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cqh",
+          "offset": "0x1820",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cqt",
+          "offset": "0x1824",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "fqb",
+          "offset": "0x1828",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "fqt",
+          "offset": "0x1834",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "pqb",
+          "offset": "0x1838",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "pqt",
+          "offset": "0x1844",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cqcsr",
+          "offset": "0x1848",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "fqcsr",
+          "offset": "0x184C",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "pqcsr",
+          "offset": "0x1850",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "axi_pcie1",
+      "type": "generic_mmio",
+      "base": "0x700002000",
+      "size": "0x00002000",
+      "cpu_target": "both",
+      "_comment": "AXI Bridge PCIe1 CSR (8KB) with IOMMU",
+      "registers": [
+        {
+          "name": "CTRL",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "STATUS",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "AXI_ERROR_INFO",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "AXI_PMU_CTRL_REG",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "capabilities",
+          "offset": "0x1800",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "fctl",
+          "offset": "0x1808",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ddtp",
+          "offset": "0x1810",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cqb",
+          "offset": "0x1818",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cqh",
+          "offset": "0x1820",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cqt",
+          "offset": "0x1824",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "fqb",
+          "offset": "0x1828",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "fqt",
+          "offset": "0x1834",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "pqb",
+          "offset": "0x1838",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "pqt",
+          "offset": "0x1844",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cqcsr",
+          "offset": "0x1848",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "fqcsr",
+          "offset": "0x184C",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "pqcsr",
+          "offset": "0x1850",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "axi_pcie2",
+      "type": "generic_mmio",
+      "base": "0x700004000",
+      "size": "0x00002000",
+      "cpu_target": "both",
+      "_comment": "AXI Bridge PCIe2 CSR (8KB) with IOMMU",
+      "registers": [
+        {
+          "name": "CTRL",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "STATUS",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "AXI_ERROR_INFO",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "AXI_PMU_CTRL_REG",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "capabilities",
+          "offset": "0x1800",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "fctl",
+          "offset": "0x1808",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ddtp",
+          "offset": "0x1810",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cqb",
+          "offset": "0x1818",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cqh",
+          "offset": "0x1820",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cqt",
+          "offset": "0x1824",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "fqb",
+          "offset": "0x1828",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "fqt",
+          "offset": "0x1834",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "pqb",
+          "offset": "0x1838",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "pqt",
+          "offset": "0x1844",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cqcsr",
+          "offset": "0x1848",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "fqcsr",
+          "offset": "0x184C",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "pqcsr",
+          "offset": "0x1850",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    },
+    {
+      "name": "axi_pcie3",
+      "type": "generic_mmio",
+      "base": "0x700006000",
+      "size": "0x00002000",
+      "cpu_target": "both",
+      "_comment": "AXI Bridge PCIe3 CSR (8KB) with IOMMU",
+      "registers": [
+        {
+          "name": "CTRL",
+          "offset": "0x1000",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "STATUS",
+          "offset": "0x1008",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "AXI_ERROR_INFO",
+          "offset": "0x1010",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "AXI_PMU_CTRL_REG",
+          "offset": "0x1018",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "capabilities",
+          "offset": "0x1800",
+          "width": 8,
+          "access": "ro",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "fctl",
+          "offset": "0x1808",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "ddtp",
+          "offset": "0x1810",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cqb",
+          "offset": "0x1818",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cqh",
+          "offset": "0x1820",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cqt",
+          "offset": "0x1824",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "fqb",
+          "offset": "0x1828",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "fqt",
+          "offset": "0x1834",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "pqb",
+          "offset": "0x1838",
+          "width": 8,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "pqt",
+          "offset": "0x1844",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "cqcsr",
+          "offset": "0x1848",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "fqcsr",
+          "offset": "0x184C",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        },
+        {
+          "name": "pqcsr",
+          "offset": "0x1850",
+          "width": 4,
+          "access": "rw",
+          "reset_value": "0x0"
+        }
+      ]
+    }
+  ],
+  "ddr": {
+    "num_channels": 8,
+    "channel_width_bits": 64,
+    "speed_mbps": 4800,
+    "max_per_channel_gb": 64,
+    "interleave_step_bytes": 64,
+    "channels": [
+      {
+        "id": 0,
+        "ctrl_base": "0x0120000000",
+        "mem_base": "0x4000000000",
+        "size": "0x20000000",
+        "_comment": "DDR0 4GB for QEMU (hw: 64GB)"
+      },
+      {
+        "id": 1,
+        "ctrl_base": "0x0124000000",
+        "mem_base": "0x5000000000",
+        "size": "0x0",
+        "_comment": "DDR1 disabled in QEMU"
+      },
+      {
+        "id": 2,
+        "ctrl_base": "0x0128000000",
+        "mem_base": "0x6000000000",
+        "size": "0x0",
+        "_comment": "DDR2 disabled"
+      },
+      {
+        "id": 3,
+        "ctrl_base": "0x012C000000",
+        "mem_base": "0x7000000000",
+        "size": "0x0",
+        "_comment": "DDR3 disabled"
+      },
+      {
+        "id": 4,
+        "ctrl_base": "0x0130000000",
+        "mem_base": "0x8000000000",
+        "size": "0x0",
+        "_comment": "DDR4 disabled"
+      },
+      {
+        "id": 5,
+        "ctrl_base": "0x0134000000",
+        "mem_base": "0x9000000000",
+        "size": "0x0",
+        "_comment": "DDR5 disabled"
+      },
+      {
+        "id": 6,
+        "ctrl_base": "0x0138000000",
+        "mem_base": "0xA000000000",
+        "size": "0x0",
+        "_comment": "DDR6 disabled"
+      },
+      {
+        "id": 7,
+        "ctrl_base": "0x013C000000",
+        "mem_base": "0xB000000000",
+        "size": "0x0",
+        "_comment": "DDR7 disabled"
+      }
+    ]
+  },
+  "pcie": [
+    {
+      "name": "pcie0",
+      "dbi_base": "0x0140000000",
+      "dbi_size": "0x08000000",
+      "ecam_base": "0x0700000000",
+      "ecam_size": "0x00002000",
+      "mmio_base": "0x1000000000",
+      "mmio_size": "0x1000000000",
+      "mmio64_base": "0x0",
+      "mmio64_size": "0x0",
+      "num_lanes": 16,
+      "irq_name": "pcie0_msi",
+      "irq_intx_name": "pcie0_intx",
+      "_comment": "PCIe0: DBI @ 0x01_4000_0000, MMIO @ 0x10_0000_0000 (64GB)"
+    },
+    {
+      "name": "pcie1",
+      "dbi_base": "0x0148000000",
+      "dbi_size": "0x08000000",
+      "ecam_base": "0x0700002000",
+      "ecam_size": "0x00002000",
+      "mmio_base": "0x2000000000",
+      "mmio_size": "0x1000000000",
+      "mmio64_base": "0x0",
+      "mmio64_size": "0x0",
+      "num_lanes": 16,
+      "irq_name": "pcie1_msi",
+      "irq_intx_name": "pcie1_intx",
+      "_comment": "PCIe1: DBI @ 0x01_4800_0000, MMIO @ 0x20_0000_0000 (64GB)"
+    },
+    {
+      "name": "pcie2",
+      "dbi_base": "0x0150000000",
+      "dbi_size": "0x08000000",
+      "ecam_base": "0x0700004000",
+      "ecam_size": "0x00002000",
+      "mmio_base": "0x3000000000",
+      "mmio_size": "0x1000000000",
+      "mmio64_base": "0x0",
+      "mmio64_size": "0x0",
+      "num_lanes": 16,
+      "irq_name": "pcie2_msi",
+      "irq_intx_name": "pcie2_intx",
+      "_comment": "PCIe2: DBI @ 0x01_5000_0000, MMIO @ 0x30_0000_0000 (64GB)"
+    },
+    {
+      "name": "pcie3",
+      "dbi_base": "0x0158000000",
+      "dbi_size": "0x08000000",
+      "ecam_base": "0x0700006000",
+      "ecam_size": "0x00002000",
+      "mmio_base": "0xC000000000",
+      "mmio_size": "0x4000000000",
+      "mmio64_base": "0x0",
+      "mmio64_size": "0x0",
+      "num_lanes": 16,
+      "irq_name": "pcie3_msi",
+      "irq_intx_name": "pcie3_intx",
+      "_comment": "PCIe3: DBI @ 0x01_5800_0000, MMIO @ 0xC0_0000_0000 (256GB)"
+    }
+  ],
+  "boot": {
+    "mode": "acpu_direct",
+    "bootrom_base": "0x00D0000000",
+    "bootrom_size": "0x00010000",
+    "flash_base": "0x00D8000000",
+    "flash_size": "0x08000000",
+    "mcpu_entry": "0x00D0000000",
+    "acpu_entry": "0x4000000000",
+    "_comment": "MCPU ROM @ 0x00_D000_0000, BT_SPI XIP @ 0x00_D800_0000, DDR0 @ 0x40_0000_0000"
+  }
+}
