@@ -1,5 +1,28 @@
 # macOS
 .DS_Store
+._*
+**/._.DS_Store
+
+# Build artifacts
+build/
+*.o
+*.a
+*.so
+*.pyc
+__pycache__/
+
+# Editor artifacts
+*.swp
+*.swo
+*~
+
+# QEMU generated files
+trace-events-all
+VERSION.generated
+
+# LSP / editor caches
+.cache/
+compile_commands.json
 
 # Large kernel source tarball (download separately)
 kernel/linux-6.19.5.tar.xz
@@ -25,10 +48,6 @@ tests/baremetal/bm.hex
 tests/baremetal/bm.S
 tests/baremetal/output_backup*/
 tests/logs/
-
-# macOS extended attribute sidecar files
-._*
-**/._.DS_Store
 
 # Baremetal test binary packages
 bm.tar.gz
